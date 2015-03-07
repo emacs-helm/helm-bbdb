@@ -22,6 +22,7 @@
 
 (require 'cl-lib)
 (require 'helm)
+(require 'helm-utils)
 (require 'helm-mode)
 
 (defvar bbdb-records)
@@ -66,18 +67,6 @@ See docstring of `bbdb-create-internal' for more info on address entries."
         collect (vector loc phone-number) into phone-list
         do (setq loc-list (remove loc loc-list))
         finally return phone-list))
-
-;; TODO move this to helm-utils when finish
-(defun helm-read-repeat-string (bbdb--prompt &optional count)
-  "Prompt as many time PROMPT is not empty.
-If COUNT is non--nil add a number after each prompt."
-  (cl-loop with elm
-        while (not (string= elm ""))
-        for n from 1
-        do (when count
-             (setq bbdb--prompt (concat bbdb--prompt (int-to-string n) ": ")))
-        collect (setq elm (helm-read-string bbdb--prompt)) into lis
-        finally return (remove "" lis)))
 
 (defun helm-bbdb-read-address ()
   "Return a list of vector address objects.
