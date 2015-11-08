@@ -30,13 +30,10 @@
 
 (declare-function bbdb "ext:bbdb-com")
 (declare-function bbdb-current-record "ext:bbdb-com")
-(declare-function bbdb-redisplay-one-record "ext:bbdb-com")
-(declare-function bbdb-record-net "ext:bbdb-com" (string) t)
-(declare-function bbdb-current-record "ext:bbdb-com")
-(declare-function bbdb-dwim-net-address "ext:bbdb-com")
-(declare-function bbdb-records "ext:bbdb-com"
-                  (&optional dont-check-disk already-in-db-buffer))
-(declare-function bbdb-label-completion-list "ext:bbdb" (field))
+(declare-function bbdb-redisplay-record "ext:bbdb-com")
+(declare-function bbdb-record-mail "ext:bbdb-com" (record) t)
+(declare-function bbdb-mail-address "ext:bbdb-com")
+(declare-function bbdb-records "ext:bbdb-com")
 
 (defgroup helm-bbdb nil
   "Commands and function for bbdb."
@@ -54,8 +51,7 @@ The format is \"Firstname Lastname\"."
 (defun helm-bbdb-read-phone ()
   "Return a list of vector address objects.
 See docstring of `bbdb-create-internal' for more info on address entries."
-  (cl-loop with loc-list = (cons "[Exit when no more]"
-                                 (bbdb-label-completion-list "phones"))
+  (cl-loop with loc-list = (cons "[Exit when no more]" bbdb-phone-label-list)
         with loc ; Defer count
         do (setq loc (helm-comp-read (format "Phone location[%s]: " count)
                                      loc-list
@@ -71,8 +67,7 @@ See docstring of `bbdb-create-internal' for more info on address entries."
 (defun helm-bbdb-read-address ()
   "Return a list of vector address objects.
 See docstring of `bbdb-create-internal' for more info on address entries."
-  (cl-loop with loc-list = (cons "[Exit when no more]"
-                                 (bbdb-label-completion-list "addresses"))
+  (cl-loop with loc-list = (cons "[Exit when no more]" bbdb-address-label-list)
         with loc ; Defer count
         do (setq loc (helm-comp-read
                       (format "Address description[%s]: "
@@ -101,11 +96,14 @@ All other actions are removed."
          . (lambda (actions)
              (bbdb-create-internal
               (read-from-minibuffer "Name: " helm-bbdb-name)
-              (read-from-minibuffer "Company: ")
+              nil nil
+              (bbdb-read-organization)
               (helm-read-repeat-string "Email " t)
-              (helm-bbdb-read-address)
               (helm-bbdb-read-phone)
-              (read-from-minibuffer "Note: ")))))
+              (helm-bbdb-read-address)
+              (let ((xfield (bbdb-read-xfield bbdb-default-xfield)))
+                (unless (string= xfield "")
+                  (list (cons bbdb-default-xfield xfield))))))))
     actions))
 
 (defun helm-bbdb-get-record (candidate)
@@ -139,15 +137,15 @@ http://bbdb.sourceforge.net/")
   (helm-aif (helm-marked-candidates)
       (let ((bbdb-append-records (length it)))
         (cl-dolist (i it)
-          (bbdb-redisplay-one-record (helm-bbdb-get-record i))))
-    (bbdb-redisplay-one-record (helm-bbdb-get-record candidate))))
+          (bbdb-redisplay-record (helm-bbdb-get-record i))))
+    (bbdb-redisplay-record (helm-bbdb-get-record candidate))))
 
 (defun helm-bbdb-collect-mail-addresses ()
   "Return a list of all mail addresses of records in bbdb buffer."
   (with-current-buffer bbdb-buffer-name
     (cl-loop for i in bbdb-records
-          if (bbdb-record-net (car i))
-          collect (bbdb-dwim-net-address (car i)))))
+          if (bbdb-record-mail (car i))
+          collect (bbdb-mail-address (car i)))))
 
 (defun helm-bbdb-compose-mail (candidate)
   "Compose a mail with all records of bbdb buffer."
