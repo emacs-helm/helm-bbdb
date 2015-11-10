@@ -42,6 +42,7 @@
 (defun helm-bbdb-candidates ()
   "Return a list of all names in the bbdb database.
 The format is \"Firstname Lastname\"."
+  (require 'bbdb)
   (mapcar (lambda (bbdb-record)
             (replace-regexp-in-string
              "\\s-+$" ""
