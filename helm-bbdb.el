@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2012 ~ 2015 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
-;; Version: 1.6.8
+;; Version: 1.7
 ;; Package-Requires: ((helm "1.5") (bbdb "3.1.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
