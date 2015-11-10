@@ -93,18 +93,18 @@ See docstring of `bbdb-create-internal' for more info on address entries."
 Returns only an entry to add the current `helm-pattern' as new contact.
 All other actions are removed."
   (if (string= candidate "*Add to contacts*")
-      '(("Add to contacts"
-         . (lambda (actions)
-             (bbdb-create-internal
-              (read-from-minibuffer "Name: " helm-bbdb-name)
-              nil nil
-              (bbdb-read-organization)
-              (helm-read-repeat-string "Email " t)
-              (helm-bbdb-read-phone)
-              (helm-bbdb-read-address)
-              (let ((xfield (bbdb-read-xfield bbdb-default-xfield)))
-                (unless (string= xfield "")
-                  (list (cons bbdb-default-xfield xfield))))))))
+      `(("Add to contacts"
+         . ,(lambda (_actions)
+              (bbdb-create-internal
+               (read-from-minibuffer "Name: " helm-bbdb-name)
+               nil nil
+               (bbdb-read-organization)
+               (helm-read-repeat-string "Email " t)
+               (helm-bbdb-read-phone)
+               (helm-bbdb-read-address)
+               (let ((xfield (bbdb-read-xfield bbdb-default-xfield)))
+                 (unless (string= xfield "")
+                   (list (cons bbdb-default-xfield xfield))))))))
     actions))
 
 (defun helm-bbdb-get-record (candidate)
@@ -117,7 +117,7 @@ All other actions are removed."
   "Only for internal use.")
 
 (defvar helm-source-bbdb
-  '((name . "BBDB")
+  `((name . "BBDB")
     (candidates . helm-bbdb-candidates)
     (action . (("Send a mail" . helm-bbdb-compose-mail)
                ("View person's data" . helm-bbdb-view-person-action)))
@@ -126,8 +126,8 @@ All other actions are removed."
                                         (if (not candidates)
                                             (list "*Add to contacts*")
                                           candidates)))
-    (action-transformer . (lambda (actions candidate)
-                            (helm-bbdb-create-contact actions candidate))))
+    (action-transformer . ,(lambda (actions candidate)
+                             (helm-bbdb-create-contact actions candidate))))
   "Needs BBDB.
 
 http://bbdb.sourceforge.net/")
