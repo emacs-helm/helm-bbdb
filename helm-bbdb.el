@@ -79,7 +79,7 @@ See docstring of `bbdb-create-internal' for more info on address entries."
         while (not (string= loc "[Exit when no more]"))
         for count from 1
         ;; Create vector
-        for lines =  (helm-read-repeat-string "Line" t)
+        for lines = (helm-read-repeat-string "Street, line" t)
         for city = (helm-read-string "City: ")
         for state = (helm-read-string "State: ")
         for zip = (helm-read-string "ZipCode: ")
