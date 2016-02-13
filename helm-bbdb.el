@@ -153,6 +153,7 @@ URL `http://bbdb.sourceforge.net/'")
   (helm-bbdb-view-person-action candidate)
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
          (address-str  (mapconcat 'identity address-list ",\n    ")))
+    (delete-window)
     (compose-mail address-str)))
 
 ;;;###autoload
@@ -161,7 +162,7 @@ URL `http://bbdb.sourceforge.net/'")
 
 Needs BBDB.
 
-http://bbdb.sourceforge.net/"
+URL `http://bbdb.sourceforge.net/'"
   (interactive)
   (helm-other-buffer 'helm-source-bbdb "*helm bbdb*"))
 
