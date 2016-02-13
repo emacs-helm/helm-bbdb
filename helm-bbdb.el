@@ -130,7 +130,7 @@ All other actions are removed."
                              (helm-bbdb-create-contact actions candidate))))
   "Needs BBDB.
 
-http://bbdb.sourceforge.net/")
+URL `http://bbdb.sourceforge.net/'")
 
 (defvar bbdb-append-records)
 (defun helm-bbdb-view-person-action (candidate)
