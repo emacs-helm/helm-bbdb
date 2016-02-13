@@ -24,6 +24,7 @@
 (require 'helm)
 (require 'helm-utils)
 (require 'helm-mode)
+(require 'bbdb-com)
 
 (defvar bbdb-records)
 (defvar bbdb-buffer-name)
