@@ -120,6 +120,7 @@ All other actions are removed."
   `((name . "BBDB")
     (candidates . helm-bbdb-candidates)
     (action . (("View person's data" . helm-bbdb-view-person-action)
+               ("Delete contact" . helm-bbdb-delete-contact)
                ("Send a mail" . helm-bbdb-compose-mail)))
     (filtered-candidate-transformer . ,(lambda (candidates _source)
                                          (setq helm-bbdb-name helm-pattern)
@@ -155,6 +156,17 @@ URL `http://bbdb.sourceforge.net/'")
          (address-str  (mapconcat 'identity address-list ",\n    ")))
     (delete-window)
     (compose-mail address-str)))
+
+(defun helm-bbdb-delete-contact (candidate)
+  "Delete CANDIDATE from the bbdb buffer and database.
+Prompt user to confirm deletion by default."
+  (bbdb-redisplay-record (helm-bbdb-get-record candidate))
+  (with-current-buffer bbdb-buffer-name
+    (let ((field (bbdb-current-field))
+          (record (bbdb-current-record)))
+      (bbdb-delete-field-or-record record field)
+      (delete-window)
+      (message "\"%s\" deleted" candidate))))
 
 ;;;###autoload
 (defun helm-bbdb ()
