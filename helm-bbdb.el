@@ -24,7 +24,6 @@
 (require 'helm)
 (require 'helm-utils)
 (require 'helm-mode)
-(require 'bbdb-com)
 
 (defvar bbdb-records)
 (defvar bbdb-buffer-name)
@@ -160,7 +159,7 @@ URL `http://bbdb.sourceforge.net/'")
 
 (defun helm-bbdb-delete-contact (candidate)
   "Delete CANDIDATE from the bbdb buffer and database.
-Prompt user to confirm deletion by default."
+Prompt user to confirm deletion."
   (bbdb-redisplay-record (helm-bbdb-get-record candidate))
   (with-current-buffer bbdb-buffer-name
     (let ((field (bbdb-current-field))
