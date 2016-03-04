@@ -39,6 +39,15 @@
   "Commands and function for bbdb."
   :group 'helm)
 
+(defcustom helm-bbdb-actions
+  '(("View contact's data" . helm-bbdb-view-person-action)
+    ("Copy contact's email" . helm-bbdb-copy-mail-address)
+    ("Delete contact" . helm-bbdb-delete-contact)
+    ("Send an email" . helm-bbdb-compose-mail))
+  "Default actions alist for `helm-source-bbdb'."
+  :group 'helm-bbdb
+  :type '(alist :key-type string :value-type function))
+
 (defun helm-bbdb-candidates ()
   "Return a list of all names in the bbdb database.
 The format is \"Firstname Lastname\"."
@@ -119,9 +128,7 @@ All other actions are removed."
 (defvar helm-source-bbdb
   `((name . "BBDB")
     (candidates . helm-bbdb-candidates)
-    (action . (("View person's data" . helm-bbdb-view-person-action)
-               ("Delete contact" . helm-bbdb-delete-contact)
-               ("Send a mail" . helm-bbdb-compose-mail)))
+    (action . helm-bbdb-actions)
     (filtered-candidate-transformer . ,(lambda (candidates _source)
                                          (setq helm-bbdb-name helm-pattern)
                                          (if (not candidates)
@@ -167,6 +174,15 @@ Prompt user to confirm deletion."
       (bbdb-delete-field-or-record record field)
       (delete-window)
       (message "\"%s\" deleted" candidate))))
+
+(defun helm-bbdb-copy-mail-address (candidate)
+  "Add the contact's email address to the kill ring."
+  (helm-bbdb-view-person-action candidate)
+  (let* ((address-list (helm-bbdb-collect-mail-addresses))
+         (address-str  (mapconcat 'identity address-list ",\n    ")))
+    (delete-window)
+    (kill-new address-str)
+    (message "\"%s\" copied" address-str)))
 
 ;;;###autoload
 (defun helm-bbdb ()
