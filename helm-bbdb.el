@@ -181,8 +181,7 @@ Prompt user to confirm deletion."
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
          (address-str  (mapconcat 'identity address-list ",\n    ")))
     (delete-window)
-    (kill-new address-str)
-    (message "\"%s\" copied" address-str)))
+    (kill-new address-str)))
 
 ;;;###autoload
 (defun helm-bbdb ()
