@@ -45,7 +45,6 @@
     ("Delete contact" . helm-bbdb-delete-contact)
     ("Send an email" . helm-bbdb-compose-mail))
   "Default actions alist for `helm-source-bbdb'."
-  :group 'helm-bbdb
   :type '(alist :key-type string :value-type function))
 
 (defun helm-bbdb-candidates ()
@@ -173,15 +172,16 @@ Prompt user to confirm deletion."
           (record (bbdb-current-record)))
       (bbdb-delete-field-or-record record field)
       (delete-window)
-      (message "\"%s\" deleted" candidate))))
+      (message "%s (deleted)" candidate))))
 
 (defun helm-bbdb-copy-mail-address (candidate)
-  "Add the contact's email address to the kill ring."
+  "Add CANDIDATE's email address to the kill ring."
   (helm-bbdb-view-person-action candidate)
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
          (address-str  (mapconcat 'identity address-list ",\n    ")))
     (delete-window)
-    (kill-new address-str)))
+    (kill-new address-str)
+    (message "%s (copied)" address-str)))
 
 ;;;###autoload
 (defun helm-bbdb ()
