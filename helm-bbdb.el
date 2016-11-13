@@ -4,6 +4,7 @@
 
 ;; Version: 1.7
 ;; Package-Requires: ((helm "1.5") (bbdb "3.1.2"))
+;; URL: https://github.com/emacs-helm/helm-bbdb
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
