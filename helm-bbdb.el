@@ -168,9 +168,9 @@ http://bbdb.sourceforge.net/"
 (provide 'helm-bbdb)
 
 ;; Local Variables:
-;; byte-compile-warnings: (not cl-functions obsolete)
+;; byte-compile-warnings: (not obsolete)
 ;; coding: utf-8
 ;; indent-tabs-mode: nil
 ;; End:
 
-;;; helm-bbdb ends here
+;;; helm-bbdb.el ends here
