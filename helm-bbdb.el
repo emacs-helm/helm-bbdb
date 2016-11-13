@@ -160,8 +160,7 @@ URL `http://bbdb.sourceforge.net/'")
   (helm-bbdb-view-person-action candidate)
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
          (address-str  (mapconcat 'identity address-list ",\n    ")))
-    (delete-window)
-    (compose-mail address-str)))
+    (compose-mail address-str nil nil nil 'switch-to-buffer)))
 
 (defun helm-bbdb-delete-contact (candidate)
   "Delete CANDIDATE from the bbdb buffer and database.
