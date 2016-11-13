@@ -40,10 +40,11 @@
   :group 'helm)
 
 (defcustom helm-bbdb-actions
-  '(("View contact's data" . helm-bbdb-view-person-action)
-    ("Copy contact's email" . helm-bbdb-copy-mail-address)
-    ("Delete contact" . helm-bbdb-delete-contact)
-    ("Send an email" . helm-bbdb-compose-mail))
+  (helm-make-actions
+   "View contact's data" 'helm-bbdb-view-person-action
+   "Copy contact's email" 'helm-bbdb-copy-mail-address
+   "Delete contact" 'helm-bbdb-delete-contact
+   "Send an email" 'helm-bbdb-compose-mail)
   "Default actions alist for `helm-source-bbdb'."
   :type '(alist :key-type string :value-type function))
 
