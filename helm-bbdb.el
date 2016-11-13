@@ -125,16 +125,16 @@ All other actions are removed."
   "Only for internal use.")
 
 (defvar helm-source-bbdb
-  `((name . "BBDB")
-    (candidates . helm-bbdb-candidates)
-    (action . helm-bbdb-actions)
-    (filtered-candidate-transformer . ,(lambda (candidates _source)
-                                         (setq helm-bbdb-name helm-pattern)
-                                         (if (not candidates)
-                                             (list "*Add to contacts*")
-                                           candidates)))
-    (action-transformer . ,(lambda (actions candidate)
-                             (helm-bbdb-create-contact actions candidate))))
+  (helm-build-sync-source "BBDB"
+    :candidates 'helm-bbdb-candidates
+    :action 'helm-bbdb-actions
+    :filtered-candidate-transformer (lambda (candidates _source)
+                                      (setq helm-bbdb-name helm-pattern)
+                                      (if (not candidates)
+                                          (list "*Add to contacts*")
+                                          candidates))
+    :action-transformer (lambda (actions candidate)
+                          (helm-bbdb-create-contact actions candidate)))
   "Needs BBDB.
 
 URL `http://bbdb.sourceforge.net/'")
