@@ -39,6 +39,14 @@
   "Commands and function for bbdb."
   :group 'helm)
 
+(defcustom helm-bbdb-actions
+  '(("View contact's data" . helm-bbdb-view-person-action)
+    ("Copy contact's email" . helm-bbdb-copy-mail-address)
+    ("Delete contact" . helm-bbdb-delete-contact)
+    ("Send an email" . helm-bbdb-compose-mail))
+  "Default actions alist for `helm-source-bbdb'."
+  :type '(alist :key-type string :value-type function))
+
 (defun helm-bbdb-candidates ()
   "Return a list of all names in the bbdb database.
 The format is \"Firstname Lastname\"."
@@ -119,8 +127,7 @@ All other actions are removed."
 (defvar helm-source-bbdb
   `((name . "BBDB")
     (candidates . helm-bbdb-candidates)
-    (action . (("View person's data" . helm-bbdb-view-person-action)
-               ("Send a mail" . helm-bbdb-compose-mail)))
+    (action . helm-bbdb-actions)
     (filtered-candidate-transformer . ,(lambda (candidates _source)
                                          (setq helm-bbdb-name helm-pattern)
                                          (if (not candidates)
@@ -130,7 +137,7 @@ All other actions are removed."
                              (helm-bbdb-create-contact actions candidate))))
   "Needs BBDB.
 
-http://bbdb.sourceforge.net/")
+URL `http://bbdb.sourceforge.net/'")
 
 (defvar bbdb-append-records)
 (defun helm-bbdb-view-person-action (candidate)
@@ -153,7 +160,28 @@ http://bbdb.sourceforge.net/")
   (helm-bbdb-view-person-action candidate)
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
          (address-str  (mapconcat 'identity address-list ",\n    ")))
+    (delete-window)
     (compose-mail address-str)))
+
+(defun helm-bbdb-delete-contact (candidate)
+  "Delete CANDIDATE from the bbdb buffer and database.
+Prompt user to confirm deletion."
+  (bbdb-redisplay-record (helm-bbdb-get-record candidate))
+  (with-current-buffer bbdb-buffer-name
+    (let ((field (bbdb-current-field))
+          (record (bbdb-current-record)))
+      (bbdb-delete-field-or-record record field)
+      (delete-window)
+      (message "%s (deleted)" candidate))))
+
+(defun helm-bbdb-copy-mail-address (candidate)
+  "Add CANDIDATE's email address to the kill ring."
+  (helm-bbdb-view-person-action candidate)
+  (let* ((address-list (helm-bbdb-collect-mail-addresses))
+         (address-str  (mapconcat 'identity address-list ",\n    ")))
+    (delete-window)
+    (kill-new address-str)
+    (message "%s (copied)" address-str)))
 
 ;;;###autoload
 (defun helm-bbdb ()
@@ -161,7 +189,7 @@ http://bbdb.sourceforge.net/")
 
 Needs BBDB.
 
-http://bbdb.sourceforge.net/"
+URL `http://bbdb.sourceforge.net/'"
   (interactive)
   (helm-other-buffer 'helm-source-bbdb "*helm bbdb*"))
 
