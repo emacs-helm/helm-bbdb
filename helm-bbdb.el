@@ -145,14 +145,10 @@ All other actions are removed."
 
 URL `http://bbdb.sourceforge.net/'")
 
-(defvar bbdb-append-records)
 (defun helm-bbdb-view-person-action (candidate)
   "View BBDB data of single CANDIDATE or marked candidates."
-  (helm-aif (helm-marked-candidates)
-      (let ((bbdb-append-records (length it)))
-        (cl-dolist (i it)
-          (bbdb-redisplay-record (helm-bbdb-get-record i))))
-    (bbdb-redisplay-record (helm-bbdb-get-record candidate))))
+  (bbdb-display-records
+   (mapcar 'helm-bbdb-get-record (helm-marked-candidates)) nil t))
 
 (defun helm-bbdb-collect-mail-addresses ()
   "Return a list of all mail addresses of records in bbdb buffer."
