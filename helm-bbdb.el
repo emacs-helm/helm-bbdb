@@ -54,9 +54,12 @@
 The format is \"Firstname Lastname\"."
   (require 'bbdb)
   (mapcar (lambda (bbdb-record)
-            (replace-regexp-in-string
-             "\\s-+$" ""
-             (concat (aref bbdb-record 0) " " (aref bbdb-record 1))))
+            (let ((name1 (aref bbdb-record 0))
+                  (name2 (aref bbdb-record 1)))
+              (cond ((and name1 name2)
+                     (concat name1 " " name2))
+                    (name1)
+                    (name2))))
           (bbdb-records)))
 
 (defun helm-bbdb-read-phone ()
