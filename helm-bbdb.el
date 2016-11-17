@@ -154,8 +154,11 @@ URL `http://bbdb.sourceforge.net/'")
   "Return a list of all mail addresses of records in bbdb buffer."
   (with-current-buffer bbdb-buffer-name
     (cl-loop for i in bbdb-records
-          if (bbdb-record-mail (car i))
-          collect (bbdb-mail-address (car i)))))
+             for mails = (bbdb-record-mail (car i))
+             when mails collect
+             (if (cdr mails)
+                 (helm-comp-read "Choose mail: " mails)
+                 (bbdb-mail-address (car i))))))
 
 (defun helm-bbdb-compose-mail (candidate)
   "Compose a mail with all records of bbdb buffer."
