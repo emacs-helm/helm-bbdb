@@ -105,12 +105,13 @@ See docstring of `bbdb-create-internal' for more info on address entries."
   "Action transformer for `helm-source-bbdb'.
 Returns only an entry to add the current `helm-pattern' as new contact.
 All other actions are removed."
-  (if (string= candidate "*Add to contacts*")
+  (require 'bbdb-com)
+  (if (string= candidate "*Add new contact*")
       (helm-make-actions
        "Add to contacts"
        (lambda (_actions)
          (bbdb-create-internal
-          (read-from-minibuffer "Name: " helm-bbdb-name)
+          (read-from-minibuffer "Name: " helm-pattern)
           nil nil
           (bbdb-read-organization)
           (helm-read-repeat-string "Email " t)
@@ -127,17 +128,13 @@ All other actions are removed."
   (set-buffer "*BBDB*")
   (bbdb-current-record))
 
-(defvar helm-bbdb-name nil
-  "Only for internal use.")
-
 (defvar helm-source-bbdb
   (helm-build-sync-source "BBDB"
     :candidates 'helm-bbdb-candidates
     :action 'helm-bbdb-actions
     :filtered-candidate-transformer (lambda (candidates _source)
-                                      (setq helm-bbdb-name helm-pattern)
                                       (if (not candidates)
-                                          (list "*Add to contacts*")
+                                          (list "*Add new contact*")
                                           candidates))
     :action-transformer (lambda (actions candidate)
                           (helm-bbdb-create-contact actions candidate)))
