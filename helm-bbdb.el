@@ -28,6 +28,9 @@
 
 (defvar bbdb-records)
 (defvar bbdb-buffer-name)
+(defvar bbdb-phone-label-list)
+(defvar bbdb-address-label-list)
+(defvar bbdb-default-xfield)
 
 (declare-function bbdb "ext:bbdb-com")
 (declare-function bbdb-current-record "ext:bbdb-com")
@@ -35,6 +38,12 @@
 (declare-function bbdb-record-mail "ext:bbdb-com" (record) t)
 (declare-function bbdb-mail-address "ext:bbdb-com")
 (declare-function bbdb-records "ext:bbdb-com")
+(declare-function bbdb-create-internal "ext:bbdb-com")
+(declare-function bbdb-read-organization "ext:bbdb-com")
+(declare-function bbdb-read-xfield "ext:bbdb-com")
+(declare-function bbdb-display-records "ext:bbdb")
+(declare-function bbdb-current-field "ext:bbdb")
+(declare-function bbdb-delete-field-or-record "ext:bbdb-com")
 
 (defgroup helm-bbdb nil
   "Commands and function for bbdb."
@@ -122,7 +131,7 @@ All other actions are removed."
               (list (cons bbdb-default-xfield xfield)))))))
     actions))
 
-(defun helm-bbdb-get-record (candidate)
+(defun helm-bbdb-get-record (_candidate)
   "Return record that match CANDIDATE."
   (bbdb candidate nil)
   (set-buffer "*BBDB*")
