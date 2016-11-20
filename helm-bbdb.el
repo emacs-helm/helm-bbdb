@@ -140,7 +140,7 @@ All other actions are removed."
         (bbdb-current-record)
       (and delete-window (delete-window)))))
 
-(defun helm-bbdb-match-fn (candidate)
+(defun helm-bbdb-match-mail (candidate)
   "Additional match function that match email address of CANDIDATE."
   (string-match helm-pattern
                 (mapconcat
@@ -149,10 +149,19 @@ All other actions are removed."
                   (helm-bbdb-get-record candidate t))
                  ",")))
 
+(defun helm-bbdb-match-org (candidate)
+  "Additional match function that match email address of CANDIDATE."
+  (string-match helm-pattern
+                (mapconcat
+                 'identity
+                 (bbdb-record-organization
+                  (helm-bbdb-get-record candidate t))
+                 ",")))
+
 (defvar helm-source-bbdb
   (helm-build-sync-source "BBDB"
     :candidates 'helm-bbdb-candidates
-    :match 'helm-bbdb-match-fn 
+    :match '(helm-bbdb-match-mail helm-bbdb-match-org)
     :action 'helm-bbdb-actions
     :filtered-candidate-transformer (lambda (candidates _source)
                                       (if (not candidates)
