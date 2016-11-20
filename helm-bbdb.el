@@ -133,13 +133,24 @@ All other actions are removed."
 
 (defun helm-bbdb-get-record (candidate)
   "Return record that match CANDIDATE."
-  (bbdb candidate nil)
-  (set-buffer "*BBDB*")
-  (bbdb-current-record))
+  (cl-letf (((symbol-function 'message) #'ignore)) 
+    (bbdb candidate nil)
+    (set-buffer bbdb-buffer-name)
+    (prog1
+        (bbdb-current-record)
+      (delete-window))))
+
+(defun helm-bbdb-match-fn (candidate)
+  "Additional match function that match email address of CANDIDATE."
+  (string-match helm-pattern
+                (car
+                 (bbdb-record-mail
+                  (helm-bbdb-get-record candidate))))))
 
 (defvar helm-source-bbdb
   (helm-build-sync-source "BBDB"
     :candidates 'helm-bbdb-candidates
+    :match 'helm-bbdb-match-fn 
     :action 'helm-bbdb-actions
     :filtered-candidate-transformer (lambda (candidates _source)
                                       (if (not candidates)
@@ -171,7 +182,8 @@ URL `http://bbdb.sourceforge.net/'")
   (helm-bbdb-view-person-action candidate)
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
          (address-str  (mapconcat 'identity address-list ",\n    ")))
-    (delete-window) ;; Delete the bbdb window.
+    ;; Delete the bbdb window and its buffer.
+    (quit-window t (get-buffer-window bbdb-buffer-name))
     (compose-mail address-str nil nil nil 'switch-to-buffer)))
 
 (defun helm-bbdb-delete-contact (candidate)
