@@ -131,21 +131,21 @@ All other actions are removed."
               (list (cons bbdb-default-xfield xfield)))))))
     actions))
 
-(defun helm-bbdb-get-record (candidate)
+(defun helm-bbdb-get-record (candidate &optional delete-window)
   "Return record that match CANDIDATE."
   (cl-letf (((symbol-function 'message) #'ignore)) 
     (bbdb candidate nil)
     (set-buffer bbdb-buffer-name)
     (prog1
         (bbdb-current-record)
-      (delete-window))))
+      (and delete-window (delete-window)))))
 
 (defun helm-bbdb-match-fn (candidate)
   "Additional match function that match email address of CANDIDATE."
   (string-match helm-pattern
                 (car
                  (bbdb-record-mail
-                  (helm-bbdb-get-record candidate))))))
+                  (helm-bbdb-get-record candidate t))))))
 
 (defvar helm-source-bbdb
   (helm-build-sync-source "BBDB"
@@ -177,13 +177,16 @@ URL `http://bbdb.sourceforge.net/'")
                  (helm-comp-read "Choose mail: " mails)
                  (bbdb-mail-address (car i))))))
 
+(defun helm-bbdb-quit-bbdb-window (&optional kill)
+  (quit-window kill (get-buffer-window bbdb-buffer-name)))
+
 (defun helm-bbdb-compose-mail (candidate)
   "Compose a mail with all records of bbdb buffer."
   (helm-bbdb-view-person-action candidate)
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
          (address-str  (mapconcat 'identity address-list ",\n    ")))
-    ;; Delete the bbdb window and its buffer.
-    (quit-window t (get-buffer-window bbdb-buffer-name))
+    ;; Delete the bbdb window and kill its buffer.
+    (helm-bbdb-quit-bbdb-window t)
     (compose-mail address-str nil nil nil 'switch-to-buffer)))
 
 (defun helm-bbdb-delete-contact (candidate)
@@ -202,9 +205,9 @@ Prompt user to confirm deletion."
   (helm-bbdb-view-person-action candidate)
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
          (address-str  (mapconcat 'identity address-list ",\n    ")))
-    (delete-window)
+    (helm-bbdb-quit-bbdb-window t)
     (kill-new address-str)
-    (message "%s (copied)" address-str)))
+    (message "%s (copied to kill ring)" address-str)))
 
 ;;;###autoload
 (defun helm-bbdb ()
