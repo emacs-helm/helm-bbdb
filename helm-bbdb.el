@@ -145,7 +145,7 @@ All other actions are removed."
   (string-match helm-pattern
                 (car
                  (bbdb-record-mail
-                  (helm-bbdb-get-record candidate t))))))
+                  (helm-bbdb-get-record candidate t)))))
 
 (defvar helm-source-bbdb
   (helm-build-sync-source "BBDB"
@@ -189,16 +189,23 @@ URL `http://bbdb.sourceforge.net/'")
     (helm-bbdb-quit-bbdb-window t)
     (compose-mail address-str nil nil nil 'switch-to-buffer)))
 
-(defun helm-bbdb-delete-contact (candidate)
+(defun helm-bbdb-delete-contact (_candidate)
   "Delete CANDIDATE from the bbdb buffer and database.
 Prompt user to confirm deletion."
-  (bbdb-redisplay-record (helm-bbdb-get-record candidate))
-  (with-current-buffer bbdb-buffer-name
-    (let ((field (bbdb-current-field))
-          (record (bbdb-current-record)))
-      (bbdb-delete-field-or-record record field)
-      (delete-window)
-      (message "%s (deleted)" candidate))))
+  (let ((cands (helm-marked-candidates)))
+    (with-helm-display-marked-candidates
+      "*bbdb candidates*" cands
+      (when (y-or-n-p "Delete contacts")
+        (helm-bbdb-view-person-action 'ignore)
+        (delete-window)
+        (with-current-buffer bbdb-buffer-name
+          (helm-awhile (let ((field  (ignore-errors (bbdb-current-field)))
+                             (record (ignore-errors (bbdb-current-record))))
+                         (and field record (list record field t)))
+            (apply 'bbdb-delete-field-or-record it))
+          (message "%s contacts deleted: \n- %s"
+                   (length cands)
+                   (mapconcat 'identity cands "\n- ")))))))
 
 (defun helm-bbdb-copy-mail-address (candidate)
   "Add CANDIDATE's email address to the kill ring."
