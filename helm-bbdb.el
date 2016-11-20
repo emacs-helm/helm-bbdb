@@ -143,9 +143,11 @@ All other actions are removed."
 (defun helm-bbdb-match-fn (candidate)
   "Additional match function that match email address of CANDIDATE."
   (string-match helm-pattern
-                (car
+                (mapconcat
+                 'identity
                  (bbdb-record-mail
-                  (helm-bbdb-get-record candidate t)))))
+                  (helm-bbdb-get-record candidate t))
+                 ",")))
 
 (defvar helm-source-bbdb
   (helm-build-sync-source "BBDB"
