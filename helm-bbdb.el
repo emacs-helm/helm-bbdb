@@ -131,7 +131,7 @@ All other actions are removed."
               (list (cons bbdb-default-xfield xfield)))))))
     actions))
 
-(defun helm-bbdb-get-record (_candidate)
+(defun helm-bbdb-get-record (candidate)
   "Return record that match CANDIDATE."
   (bbdb candidate nil)
   (set-buffer "*BBDB*")
@@ -151,7 +151,7 @@ All other actions are removed."
 
 URL `http://bbdb.sourceforge.net/'")
 
-(defun helm-bbdb-view-person-action (candidate)
+(defun helm-bbdb-view-person-action (_candidate)
   "View BBDB data of single CANDIDATE or marked candidates."
   (bbdb-display-records
    (mapcar 'helm-bbdb-get-record (helm-marked-candidates)) nil t))
