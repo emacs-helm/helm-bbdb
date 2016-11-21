@@ -44,6 +44,7 @@
 (declare-function bbdb-display-records "ext:bbdb")
 (declare-function bbdb-current-field "ext:bbdb")
 (declare-function bbdb-delete-field-or-record "ext:bbdb-com")
+(declare-function bbdb-record-organization "ext:bbdb")
 
 (defgroup helm-bbdb nil
   "Commands and function for bbdb."
@@ -163,6 +164,7 @@ All other actions are removed."
     :candidates 'helm-bbdb-candidates
     :match '(helm-bbdb-match-mail helm-bbdb-match-org)
     :action 'helm-bbdb-actions
+    :persistent-action 'helm-bbdb-persistent-action
     :filtered-candidate-transformer (lambda (candidates _source)
                                       (if (not candidates)
                                           (list "*Add new contact*")
@@ -173,10 +175,21 @@ All other actions are removed."
 
 URL `http://bbdb.sourceforge.net/'")
 
+(defun helm-bbdb--view-person-action-1 (candidates)
+  (bbdb-display-records
+   (mapcar 'helm-bbdb-get-record candidates) nil t))
+
 (defun helm-bbdb-view-person-action (_candidate)
   "View BBDB data of single CANDIDATE or marked candidates."
-  (bbdb-display-records
-   (mapcar 'helm-bbdb-get-record (helm-marked-candidates)) nil t))
+  (helm-bbdb--view-person-action-1 (helm-marked-candidates)))
+
+(defun helm-bbdb-persistent-action (candidate)
+  (cl-letf (((symbol-function 'bbdb-pop-up-window)
+             (lambda (&optional _select _horiz)
+               (switch-to-buffer bbdb-buffer-name))))
+    (if (get-buffer-window bbdb-buffer-name 'visible)
+        (helm-bbdb-quit-bbdb-window)
+        (helm-bbdb--view-person-action-1 (list candidate)))))
 
 (defun helm-bbdb-collect-mail-addresses ()
   "Return a list of all mail addresses of records in bbdb buffer."
