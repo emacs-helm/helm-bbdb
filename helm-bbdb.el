@@ -187,7 +187,10 @@ URL `http://bbdb.sourceforge.net/'")
   (cl-letf (((symbol-function 'bbdb-pop-up-window)
              (lambda (&optional _select _horiz)
                (switch-to-buffer bbdb-buffer-name))))
-    (if (get-buffer-window bbdb-buffer-name 'visible)
+    (if (and (get-buffer-window bbdb-buffer-name 'visible)
+             (string= candidate
+                      (with-current-buffer bbdb-buffer-name
+                        (bbdb-record-name (bbdb-current-record)))))
         (helm-bbdb-quit-bbdb-window)
         (helm-bbdb--view-person-action-1 (list candidate)))))
 
