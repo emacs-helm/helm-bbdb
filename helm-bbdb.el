@@ -45,6 +45,7 @@
 (declare-function bbdb-current-field "ext:bbdb")
 (declare-function bbdb-delete-field-or-record "ext:bbdb-com")
 (declare-function bbdb-record-organization "ext:bbdb")
+(declare-function bbdb-record-name "ext:bbdb")
 
 (defgroup helm-bbdb nil
   "Commands and function for bbdb."
