@@ -47,6 +47,8 @@
 (declare-function bbdb-record-organization "ext:bbdb")
 (declare-function bbdb-record-name "ext:bbdb")
 
+(defvar helm-bbdb--cache nil)
+
 (defgroup helm-bbdb nil
   "Commands and function for bbdb."
   :group 'helm)
@@ -162,7 +164,6 @@ All other actions are removed."
                   (assoc-default candidate helm-bbdb--cache))
                  ",")))
 
-(defvar helm-bbdb--cache nil)
 (defvar helm-source-bbdb
   (helm-build-sync-source "BBDB"
     :init (lambda ()
