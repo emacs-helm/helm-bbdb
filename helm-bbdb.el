@@ -150,7 +150,7 @@ All other actions are removed."
                 (mapconcat
                  'identity
                  (bbdb-record-mail
-                  (get-text-property 0 'helm-real candidate))
+                  (assoc-default candidate helm-bbdb--cache))
                 ",")))
 
 (defun helm-bbdb-match-org (candidate)
@@ -159,7 +159,7 @@ All other actions are removed."
                 (mapconcat
                  'identity
                  (bbdb-record-organization
-                  (get-text-property 0 'helm-real candidate))
+                  (assoc-default candidate helm-bbdb--cache))
                  ",")))
 
 (defvar helm-bbdb--cache nil)
