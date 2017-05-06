@@ -154,7 +154,7 @@ All other actions are removed."
                 ",")))
 
 (defun helm-bbdb-match-org (candidate)
-  "Additional match function that match email address of CANDIDATE."
+  "Additional match function that match organization of CANDIDATE."
   (string-match helm-pattern
                 (mapconcat
                  'identity
