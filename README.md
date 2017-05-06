@@ -38,7 +38,7 @@ Just install from Melpa and once `(package-initialize)` `helm-bbdb` should be av
 a contact manager for emacs similar to `bbdb` but much more light (only
 one file `addressbook-bookmark.el`) without all the `bbdb` features you
 will never use. 
-It provide completion in email buffers, its helm
+It provide completion in email buffers and its helm
 interface which is part of helm works out of the box with M-x
 `helm-addressbook-bookmarks`.  Contacts are stored in emacs bookmark
 file, so the database format is also much simpler and lighter than `bbdb`
