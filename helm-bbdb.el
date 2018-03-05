@@ -56,7 +56,7 @@
 (defcustom helm-bbdb-actions
   (helm-make-actions
    "View contact's data" 'helm-bbdb-view-person-action
-   "Copy contact's email" 'helm-bbdb-copy-mail-address
+   "Insert contact's email" 'helm-bbdb-insert-mail
    "Delete contact" 'helm-bbdb-delete-contact
    "Send an email" 'helm-bbdb-compose-mail)
   "Default actions alist for `helm-source-bbdb'."
@@ -66,15 +66,8 @@
   "Return a list of all names in the bbdb database.
 The format is \"Firstname Lastname\"."
   (cl-loop for bbdb-record in (bbdb-records)
-           for name1 = (aref bbdb-record 0)
-           for name2 = (aref bbdb-record 1)
-           when (or (and name1 (not (string= name1 "")))
-                    (and name2 (not (string= name2 ""))))
-           collect (cons (cond ((and name1 name2)
-                                (concat name1 " " name2))
-                               (name1)
-                               (name2))
-                         bbdb-record)))
+	   for name = (bbdb-record-name bbdb-record)
+           collect (cons name bbdb-record)))
 
 (defun helm-bbdb-read-phone ()
   "Return a list of vector address objects.
@@ -189,10 +182,9 @@ URL `http://bbdb.sourceforge.net/'")
 
 (defun helm-bbdb--marked-contacts ()
   (cl-loop for c in (helm-marked-candidates)
-           for name1 = (aref c 0)
-           for name2 = (aref c 1)
-           for name3 = (car (aref c 3))
-           collect (or name3 name1 name2)))
+	   for name = (bbdb-record-name c)
+           collect
+	   name))
 
 (defun helm-bbdb-view-person-action (_candidate)
   "View BBDB data of single CANDIDATE or marked candidates."
@@ -249,14 +241,13 @@ Prompt user to confirm deletion."
                    (length cands)
                    (mapconcat 'identity cands "\n- ")))))))
 
-(defun helm-bbdb-copy-mail-address (candidate)
-  "Add CANDIDATE's email address to the kill ring."
+(defun helm-bbdb-insert-mail (candidate)
+  "Insert CANDIDATE's email address."
   (helm-bbdb-view-person-action candidate)
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
-         (address-str  (mapconcat 'identity address-list ",\n    ")))
+         (address-str  (mapconcat 'identity address-list ", ")))
     (helm-bbdb-quit-bbdb-window t)
-    (kill-new address-str)
-    (message "%s (copied to kill ring)" address-str)))
+    (insert address-str)))
 
 ;;;###autoload
 (defun helm-bbdb ()
