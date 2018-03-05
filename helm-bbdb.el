@@ -56,7 +56,7 @@
 (defcustom helm-bbdb-actions
   (helm-make-actions
    "View contact's data" 'helm-bbdb-view-person-action
-   "Copy contact's email" 'helm-bbdb-copy-mail-address
+   "Insert contact's email" 'helm-bbdb-insert-mail
    "Delete contact" 'helm-bbdb-delete-contact
    "Send an email" 'helm-bbdb-compose-mail)
   "Default actions alist for `helm-source-bbdb'."
@@ -249,14 +249,13 @@ Prompt user to confirm deletion."
                    (length cands)
                    (mapconcat 'identity cands "\n- ")))))))
 
-(defun helm-bbdb-copy-mail-address (candidate)
-  "Add CANDIDATE's email address to the kill ring."
+(defun helm-bbdb-insert-mail (candidate)
+  "Insert CANDIDATE's email address."
   (helm-bbdb-view-person-action candidate)
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
-         (address-str  (mapconcat 'identity address-list ",\n    ")))
+         (address-str  (mapconcat 'identity address-list ", ")))
     (helm-bbdb-quit-bbdb-window t)
-    (kill-new address-str)
-    (message "%s (copied to kill ring)" address-str)))
+    (insert address-str)))
 
 ;;;###autoload
 (defun helm-bbdb ()
