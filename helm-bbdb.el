@@ -66,15 +66,8 @@
   "Return a list of all names in the bbdb database.
 The format is \"Firstname Lastname\"."
   (cl-loop for bbdb-record in (bbdb-records)
-           for name1 = (aref bbdb-record 0)
-           for name2 = (aref bbdb-record 1)
-           when (or (and name1 (not (string= name1 "")))
-                    (and name2 (not (string= name2 ""))))
-           collect (cons (cond ((and name1 name2)
-                                (concat name1 " " name2))
-                               (name1)
-                               (name2))
-                         bbdb-record)))
+	   for name = (bbdb-record-name bbdb-record)
+           collect (cons name bbdb-record)))
 
 (defun helm-bbdb-read-phone ()
   "Return a list of vector address objects.
