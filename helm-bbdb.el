@@ -189,10 +189,9 @@ URL `http://bbdb.sourceforge.net/'")
 
 (defun helm-bbdb--marked-contacts ()
   (cl-loop for c in (helm-marked-candidates)
-           for name1 = (aref c 0)
-           for name2 = (aref c 1)
-           for name3 = (car (aref c 3))
-           collect (or name3 name1 name2)))
+	   for name = (bbdb-record-name c)
+           collect
+	   name))
 
 (defun helm-bbdb-view-person-action (_candidate)
   "View BBDB data of single CANDIDATE or marked candidates."
