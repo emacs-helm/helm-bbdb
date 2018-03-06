@@ -13,7 +13,7 @@ A Helm interface for bbdb.
 * Show one or more contact (marked) in bbdb buffer.
 * Allow recording new contacts.
 * Allow deleting one or more contacts (marked).
-* Allow copying email address of current contact (selection).
+* Allow inserting email address of current contact (selection).
 
 # Dependencies
 
@@ -34,12 +34,4 @@ Just install from Melpa and once `(package-initialize)` `helm-bbdb` should be av
 
 # Related project
 
-[Addressbook bookmark](https://github.com/thierryvolpiatto/addressbook-bookmark) is
-a contact manager for emacs similar to `bbdb` but much more light (only
-one file `addressbook-bookmark.el`) without all the `bbdb` features you
-will never use. 
-It provide completion in email buffers and its helm
-interface which is part of helm works out of the box with M-x
-`helm-addressbook-bookmarks`.  Contacts are stored in emacs bookmark
-file, so the database format is also much simpler and lighter than `bbdb`
-one.
+[Addressbook bookmark](https://github.com/thierryvolpiatto/addressbook-bookmark) is a contact manager for emacs similar to `bbdb` but much lighter (only one file `addressbook-bookmark.el`) and without all the `bbdb` features you will never use. It provides completion in message-mode buffers using the helm interface, which is how helm works out of the box with M-x `helm-addressbook-bookmarks`.  Contacts are stored in emacs bookmark file, which means the database format is much simpler and lighter than `bbdb`'s database.
