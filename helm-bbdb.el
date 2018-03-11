@@ -255,8 +255,13 @@ Prompt user to confirm deletion."
 (defun helm-bbdb-insert-mail (candidate)
   "Insert CANDIDATE's email address."
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
-         (address-str  (mapconcat 'identity address-list ", \n")))
-    (insert address-str)))
+	 (address-str  (mapconcat 'identity address-list ",\n    ")))
+    (end-of-line)
+    (while (not (looking-back "^\\(Resent-\\)?\\(To\\|B?Cc\\): \\|, \\|    " (point-at-bol)))
+      (delete-char -1))
+    (insert address-str)
+    (end-of-line)))
+
 
 ;;;###autoload
 (defun helm-bbdb ()
