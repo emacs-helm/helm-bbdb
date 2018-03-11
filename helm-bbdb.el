@@ -217,7 +217,12 @@ If record has more than one address, prompt for an address."
 	   for mail = (bbdb-record-mail record)
 	   when mail collect
 	   (if (cdr mail)
-	       (bbdb-dwim-mail record (helm-comp-read "Choose mail: " mail))
+	       (helm-comp-read "Choose mail: "
+			       (mapcar (lambda (mail)
+					 (bbdb-dwim-mail record mail))
+				       mail)
+			       :allow-nest t
+			       :initial-input helm-pattern)
 	     (bbdb-dwim-mail record (car mail)))))
 
 (defun helm-bbdb-compose-mail (candidate)
