@@ -56,18 +56,27 @@
 (defcustom helm-bbdb-actions
   (helm-make-actions
    "View contact's data" 'helm-bbdb-view-person-action
-   "Insert contact's email" 'helm-bbdb-insert-mail
    "Delete contact" 'helm-bbdb-delete-contact
    "Send an email" 'helm-bbdb-compose-mail)
   "Default actions alist for `helm-source-bbdb'."
   :type '(alist :key-type string :value-type function))
 
-(defun helm-bbdb-candidates ()
+(defun helm-bbdb-candidates (&optional mail-only)
   "Return a list of all names in the bbdb database.
+If MAIL-ONLY is non-nil, return a list of all names containing mail.
 The format is \"Firstname Lastname\"."
   (cl-loop for bbdb-record in (bbdb-records)
 	   for name = (bbdb-record-name bbdb-record)
-           collect (cons name bbdb-record)))
+	   for mail = (bbdb-record-mail bbdb-record)
+	   if (and mail-only mail) collect
+	   (cons (if (cdr mail)
+		     (concat name "...")
+		   name)
+		 bbdb-record)
+	   else collect
+	   (if mail-only
+	       ""
+	     (cons name bbdb-record))))
 
 (defun helm-bbdb-read-phone ()
   "Return a list of vector address objects.
