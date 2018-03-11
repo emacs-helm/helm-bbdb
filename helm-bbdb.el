@@ -262,6 +262,18 @@ Prompt user to confirm deletion."
     (insert address-str)
     (end-of-line)))
 
+(defun helm-bbdb-expand-name ()
+  "Set up auto-completion of mail addresses in `message-mode'.
+This feature requires adding `helm-bbdb-expand-name' to the
+`message-completion-alist' variable."
+  (helm :sources (helm-build-sync-source "BBDB"
+		   :init (lambda ()
+			   (require 'bbdb)
+			   (setq helm-bbdb--cache (helm-bbdb-candidates t)))
+		   :candidates 'helm-bbdb--cache
+		   :match '(helm-bbdb-match-mail helm-bbdb-match-org)
+		   :action 'helm-bbdb-insert-mail)
+	:input (thing-at-point 'symbol t)))
 
 ;;;###autoload
 (defun helm-bbdb ()
