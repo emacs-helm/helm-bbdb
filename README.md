@@ -13,7 +13,7 @@ A Helm interface for bbdb.
 * Show one or more contact (marked) in bbdb buffer.
 * Allow recording new contacts.
 * Allow deleting one or more contacts (marked).
-* Allow inserting email address of current contact (selection).
+* Support auto-completion in message-mode buffers.
 
 # Dependencies
 
@@ -31,6 +31,10 @@ A Helm interface for bbdb.
 ## From melpa
 
 Just install from Melpa and once `(package-initialize)` `helm-bbdb` should be available.
+
+# Configuration
+
+To use address auto-completion in message-mode buffers with TAB, add `helm-bbdb-expand-name` to the `message-completion-alist` variable.
 
 # Related project
 
