@@ -139,14 +139,12 @@ All other actions are removed."
               (list (cons bbdb-default-xfield xfield)))))))
     actions))
 
-(defun helm-bbdb-get-record (candidate &optional delete-window)
+(defun helm-bbdb-get-record (candidate)
   "Return record that match CANDIDATE."
-  (cl-letf (((symbol-function 'message) #'ignore)) 
+  (cl-letf (((symbol-function 'message) #'ignore))
     (bbdb candidate nil)
     (set-buffer bbdb-buffer-name)
-    (prog1
-        (bbdb-current-record)
-      (and delete-window (delete-window)))))
+    (bbdb-current-record)))
 
 (defun helm-bbdb-match-mail (candidate)
   "Additional match function that match email address of CANDIDATE."
@@ -252,7 +250,7 @@ Prompt user to confirm deletion."
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
 	 (address-str  (mapconcat 'identity address-list ",\n    ")))
     (end-of-line)
-      (while (not (looking-back ": \\|, \\| [ \t]" (point-at-bol)))
+    (while (not (looking-back ": \\|, \\| [ \t]" (point-at-bol)))
       (delete-char -1))
     (insert address-str)
     (end-of-line)))
