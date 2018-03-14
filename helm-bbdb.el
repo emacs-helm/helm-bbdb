@@ -175,6 +175,7 @@ All other actions are removed."
     :match '(helm-bbdb-match-mail helm-bbdb-match-org)
     :action 'helm-bbdb-actions
     :persistent-action 'helm-bbdb-persistent-action
+    :persistent-help "View data"
     :filtered-candidate-transformer (lambda (candidates _source)
                                       (if (not candidates)
                                           (list "*Add new contact*")
@@ -190,8 +191,8 @@ URL `http://bbdb.sourceforge.net/'")
    (mapcar 'helm-bbdb-get-record candidates) nil t))
 
 (defun helm-bbdb--marked-contacts ()
-  (cl-loop for c in (helm-marked-candidates)
-	   for name = (bbdb-record-name c)
+  (cl-loop for record in (helm-marked-candidates)
+	   for name = (bbdb-record-name record)
            collect
 	   name))
 
@@ -200,15 +201,9 @@ URL `http://bbdb.sourceforge.net/'")
   (helm-bbdb--view-person-action-1 (helm-bbdb--marked-contacts)))
 
 (defun helm-bbdb-persistent-action (candidate)
-  (cl-letf (((symbol-function 'bbdb-pop-up-window)
-             (lambda (&optional _select _horiz)
-               (switch-to-buffer bbdb-buffer-name))))
-    (if (and (get-buffer-window bbdb-buffer-name 'visible)
-             (string= candidate
-                      (with-current-buffer bbdb-buffer-name
-                        (bbdb-record-name (bbdb-current-record)))))
-        (helm-bbdb-quit-bbdb-window)
-      (helm-bbdb--view-person-action-1 (list candidate)))))
+  "Persistent action to view CANDIDATE's data."
+  (let ((bbdb-silent t))
+    (helm-bbdb-view-person-action candidate)))
 
 (defun helm-bbdb-collect-mail-addresses ()
   "Return a list of the mail addresses of candidates.
