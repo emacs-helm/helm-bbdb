@@ -82,40 +82,40 @@ The format is \"Firstname Lastname\"."
   "Return a list of vector address objects.
 See docstring of `bbdb-create-internal' for more info on address entries."
   (cl-loop with loc-list = (cons "[Exit when no more]" bbdb-phone-label-list)
-        with loc ; Defer count
-        do (setq loc (helm-comp-read (format "Phone location[%s]: " count)
-                                     loc-list
-                                     :must-match 'confirm
-                                     :default ""))
-        while (not (string= loc "[Exit when no more]"))
-        for count from 1
-        for phone-number = (helm-read-string (format "Phone number (%s): " loc))
-        collect (vector loc phone-number) into phone-list
-        do (setq loc-list (remove loc loc-list))
-        finally return phone-list))
+           with loc ; Defer count
+           do (setq loc (helm-comp-read (format "Phone location[%s]: " count)
+                                        loc-list
+                                        :must-match 'confirm
+                                        :default ""))
+           while (not (string= loc "[Exit when no more]"))
+           for count from 1
+           for phone-number = (helm-read-string (format "Phone number (%s): " loc))
+           collect (vector loc phone-number) into phone-list
+           do (setq loc-list (remove loc loc-list))
+           finally return phone-list))
 
 (defun helm-bbdb-read-address ()
   "Return a list of vector address objects.
 See docstring of `bbdb-create-internal' for more info on address entries."
   (cl-loop with loc-list = (cons "[Exit when no more]" bbdb-address-label-list)
-        with loc ; Defer count
-        do (setq loc (helm-comp-read
-                      (format "Address description[%s]: "
-                              (int-to-string count))
-                      loc-list
-                      :must-match 'confirm
-                      :default ""))
-        while (not (string= loc "[Exit when no more]"))
-        for count from 1
-        ;; Create vector
-        for lines = (helm-read-repeat-string "Street, line" t)
-        for city = (helm-read-string "City: ")
-        for state = (helm-read-string "State: ")
-        for zip = (helm-read-string "ZipCode: ")
-        for country = (helm-read-string "Country: ")
-        collect (vector loc lines city state zip country) into address-list
-        do (setq loc-list (remove loc loc-list))
-        finally return address-list))
+           with loc ; Defer count
+           do (setq loc (helm-comp-read
+                         (format "Address description[%s]: "
+                                 (int-to-string count))
+                         loc-list
+                         :must-match 'confirm
+                         :default ""))
+           while (not (string= loc "[Exit when no more]"))
+           for count from 1
+           ;; Create vector
+           for lines = (helm-read-repeat-string "Street, line" t)
+           for city = (helm-read-string "City: ")
+           for state = (helm-read-string "State: ")
+           for zip = (helm-read-string "ZipCode: ")
+           for country = (helm-read-string "Country: ")
+           collect (vector loc lines city state zip country) into address-list
+           do (setq loc-list (remove loc loc-list))
+           finally return address-list))
 
 (defun helm-bbdb-create-contact (actions candidate)
   "Action transformer for `helm-source-bbdb'.
@@ -155,7 +155,7 @@ All other actions are removed."
                  'identity
                  (bbdb-record-mail
                   (assoc-default candidate helm-bbdb--cache))
-                ",")))
+                 ",")))
 
 (defun helm-bbdb-match-org (candidate)
   "Additional match function that match organization of CANDIDATE."
@@ -178,7 +178,7 @@ All other actions are removed."
     :filtered-candidate-transformer (lambda (candidates _source)
                                       (if (not candidates)
                                           (list "*Add new contact*")
-                                          candidates))
+                                        candidates))
     :action-transformer (lambda (actions candidate)
                           (helm-bbdb-create-contact actions candidate)))
   "Needs BBDB.
@@ -208,7 +208,7 @@ URL `http://bbdb.sourceforge.net/'")
                       (with-current-buffer bbdb-buffer-name
                         (bbdb-record-name (bbdb-current-record)))))
         (helm-bbdb-quit-bbdb-window)
-        (helm-bbdb--view-person-action-1 (list candidate)))))
+      (helm-bbdb--view-person-action-1 (list candidate)))))
 
 (defun helm-bbdb-collect-mail-addresses ()
   "Return a list of the mail addresses of candidates.
