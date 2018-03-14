@@ -252,7 +252,7 @@ Prompt user to confirm deletion."
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
 	 (address-str  (mapconcat 'identity address-list ",\n    ")))
     (end-of-line)
-    (while (not (looking-back "^\\(Resent-\\)?\\(To\\|B?Cc\\): \\|, \\|    " (point-at-bol)))
+      (while (not (looking-back ": \\|, \\| [ \t]" (point-at-bol)))
       (delete-char -1))
     (insert address-str)
     (end-of-line)))
