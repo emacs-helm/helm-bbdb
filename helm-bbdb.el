@@ -131,9 +131,7 @@ All other actions are removed."
           :name (read-from-minibuffer "Name: " helm-pattern)
           :organization (bbdb-read-organization)
           :mail (helm-read-repeat-string "Email " t)
-          ;; Bug in bbdb-create-internal, see:
-          ;; https://lists.gnu.org/archive/html/bbdb-user/2018-01/msg00006.html
-          ;; :phone (helm-bbdb-read-phone)
+          :phone (helm-bbdb-read-phone)
           :address (helm-bbdb-read-address)
           :xfields (let ((xfield (bbdb-read-xfield bbdb-default-xfield)))
 		     (unless (string= xfield "")
