@@ -3,16 +3,16 @@
 
 # helm-bbdb
 
-A Helm interface for bbdb.
+A Helm interface for BBDB, the Insidious Big Brother Database for GNU Emacs.
 
 # Features
 
-* List all contacts in bbdb database.
+* List all contacts in the bbdb database.
 * Match name, email or organization.
-* Allow sending email to one or more contact (marked).
-* Show one or more contact (marked) in bbdb buffer.
-* Allow recording new contacts.
-* Allow deleting one or more contacts (marked).
+* Send email to one or more contacts (marked).
+* Display one or more contacts in the bbdb buffer (marked).
+* Record new contacts.
+* Delete one or more contacts (marked).
 * Support auto-completion in message-mode buffers.
 
 # Dependencies
@@ -30,7 +30,7 @@ A Helm interface for bbdb.
 
 ## From melpa
 
-Just install from Melpa and once `(package-initialize)` `helm-bbdb` should be available.
+Just install from Melpa and once `(package-initialize)` loads and activates the package, `helm-bbdb` should be available.
 
 # Configuration
 
