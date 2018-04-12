@@ -221,9 +221,6 @@ If record has more than one address, prompt for an address."
          (address-str  (mapconcat 'identity address-list ",\n    ")))
     (compose-mail address-str nil nil nil 'switch-to-buffer)))
 
-(defun helm-bbdb-quit-bbdb-window (&optional kill)
-  (quit-window kill (get-buffer-window bbdb-buffer-name)))
-
 (defun helm-bbdb-delete-contact (_candidate)
   "Delete CANDIDATE from the bbdb buffer and database.
 Prompt user to confirm deletion."
