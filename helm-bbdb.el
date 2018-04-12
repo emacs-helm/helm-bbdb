@@ -205,6 +205,28 @@ If record has more than one address, prompt for an address."
 			       :initial-input helm-pattern)
 	     (bbdb-dwim-mail record (car mail)))))
 
+(defun helm-bbdb-collect-all-mail-addresses ()
+  "Return a list of strings to use as the mail address of record.
+This may include multiple addresses of the same record. The name in
+the mail address is formatted obeying `bbdb-mail-name-format' and
+`bbdb-mail-name'."
+  (let ((mails nil))
+    (dolist (record (bbdb-records))
+      (let ((mail (bbdb-record-mail record)))
+	(when mail
+	  (if (> (length mail) 1)
+	      ;; The idea here is to keep adding to the list however
+	      ;; many addresses are found in the record.
+	      (let ((addresses mail))
+		(mapcar (lambda (mail)
+			  (add-to-list 'mails (bbdb-dwim-mail record mail)))
+			addresses))
+	    (let ((mail (bbdb-dwim-mail record (car mail))))
+	      (add-to-list 'mails mail))))))
+    (mapcar (lambda (mail)
+	      mail)
+    	    mails)))
+
 (defun helm-bbdb-compose-mail (candidate)
   "Compose a new mail to one or multiple CANDIDATEs."
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
@@ -229,28 +251,55 @@ Prompt user to confirm deletion."
                    (length cands)
                    (mapconcat 'identity cands "\n- ")))))))
 
-(defun helm-bbdb-insert-mail (candidate)
-  "Insert CANDIDATE's email address."
-  (let* ((address-list (helm-bbdb-collect-mail-addresses))
+(defun helm-bbdb-insert-mail (candidate &optional comma)
+  "Insert CANDIDATE's email address.
+If optional argument COMMA is non-nil, insert comma separator as well,
+which is needed when executing persistent action."
+  (let* ((address-list (cl-loop for candidate in (helm-marked-candidates)
+				collect candidate))
 	 (address-str  (mapconcat 'identity address-list ",\n    ")))
     (end-of-line)
     (while (not (looking-back ": \\|, \\| [ \t]" (point-at-bol)))
       (delete-char -1))
-    (insert address-str)
+    (insert (concat address-str (when comma ", ")))
     (end-of-line)))
 
 (defun helm-bbdb-expand-name ()
-  "Set up auto-completion of mail addresses in `message-mode'.
-This feature requires adding `helm-bbdb-expand-name' to the
+  "Expand name under point when there is one.
+Otherwise, open a helm buffer displaying a list of addresses. If
+`bbdb-complete-mail-allow-cycling' is non-nil and point is at the end
+of the address line, cycle mail addresses of record.
+
+To use this feature, make sure `helm-bbdb-expand-name' is added to the
 `message-completion-alist' variable."
-  (helm :sources (helm-build-sync-source "BBDB"
-		   :init (lambda ()
-			   (require 'bbdb)
-			   (setq helm-bbdb--cache (helm-bbdb-candidates t)))
-		   :candidates 'helm-bbdb--cache
-		   :match '(helm-bbdb-match-mail helm-bbdb-match-org)
-		   :action 'helm-bbdb-insert-mail)
-	:input (thing-at-point 'symbol t)))
+  (if (and (looking-back "\\(<.+\\)\\(@\\)\\(.+>$\\)" nil)
+	   bbdb-complete-mail-allow-cycling)
+      (bbdb-complete-mail)
+    (let ((mails nil)
+	  (abbrev (thing-at-point 'symbol t)))
+      (with-temp-buffer (mapcar (lambda (mail)
+				  (insert (concat mail "\n")))
+				(helm-bbdb-collect-all-mail-addresses))
+			(goto-char (point-min))
+			(while (re-search-forward (concat "\\(^.+\\)" "\\(" abbrev "\\)" "\\(.+$\\)") nil t)
+			  (add-to-list 'mails (concat (match-string 1)
+						      (match-string 2)
+						      (match-string 3)))
+			  (setq mails mails)))
+      ;; If there's one address, insert it automatically
+      (if (= (length mails) 1)
+	  (progn (end-of-line)
+		 (while (not (looking-back ": \\|, \\| [ \t]" (point-at-bol)))
+		   (delete-char -1))
+		 (insert (car mails))
+		 (end-of-line))
+	;; If there's more than one, start helm
+	(helm :sources (helm-build-sync-source "BBDB"
+			 :candidates 'helm-bbdb-collect-all-mail-addresses
+			 :persistent-action (lambda (candidate)
+					      (helm-bbdb-insert-mail candidate t))
+			 :action 'helm-bbdb-insert-mail)
+	      :input (thing-at-point 'symbol t))))))
 
 ;;;###autoload
 (defun helm-bbdb ()
