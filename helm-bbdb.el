@@ -50,7 +50,7 @@
 (defvar helm-bbdb--cache nil)
 
 (defgroup helm-bbdb nil
-  "Commands and function for bbdb."
+  "Commands and functions for bbdb."
   :group 'helm)
 
 (defcustom helm-bbdb-actions
@@ -146,7 +146,7 @@ All other actions are removed."
     (bbdb-current-record)))
 
 (defun helm-bbdb-match-mail (candidate)
-  "Additional match function that match email address of CANDIDATE."
+  "Additional match function for matching the CANDIDATE's email address."
   (string-match helm-pattern
                 (mapconcat
                  'identity
@@ -155,7 +155,7 @@ All other actions are removed."
                  ",")))
 
 (defun helm-bbdb-match-org (candidate)
-  "Additional match function that match organization of CANDIDATE."
+  "Additional match function for matching the CANDIDATE's organization."
   (string-match helm-pattern
                 (mapconcat
                  'identity
@@ -179,9 +179,7 @@ All other actions are removed."
                                         candidates))
     :action-transformer (lambda (actions candidate)
                           (helm-bbdb-create-contact actions candidate)))
-  "Needs BBDB.
-
-URL `http://bbdb.sourceforge.net/'")
+  "Source for BBDB.")
 
 (defun helm-bbdb--view-person-action-1 (candidates)
   (bbdb-display-records
