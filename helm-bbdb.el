@@ -3,7 +3,7 @@
 ;; Copyright (C) 2012 ~ 2018 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
 ;; Version: 1.0
-;; Package-Requires: ((helm "1.5") (bbdb "3.1.2"))
+;; Package-Requires: ((emacs "24.3") (helm "1.5") (bbdb "3.1.2"))
 ;; URL: https://github.com/emacs-helm/helm-bbdb
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -18,6 +18,11 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; This is a Helm interface for BBDB, the Insidious Big Brother
+;; Database for GNU Emacs.
 
 ;;; Code:
 
