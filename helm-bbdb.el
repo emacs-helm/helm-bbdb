@@ -1,6 +1,6 @@
 ;;; helm-bbdb.el --- Helm interface for bbdb -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012 ~ 2018 Thierry Volpiatto <thierry.volpiatto@gmail.com>
+;; Copyright (C) 2012 ~ 2019 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
 ;; Version: 1.0
 ;; Package-Requires: ((emacs "24.3") (helm "1.5") (bbdb "3.1.2"))
