@@ -70,7 +70,6 @@
   "Return a list of all names in the bbdb database."
   (cl-loop for bbdb-record in (bbdb-records)
 	   for name = (bbdb-record-name bbdb-record)
-	   for mail = (bbdb-record-mail bbdb-record)
 	   collect (cons name bbdb-record)))
 
 (defun helm-bbdb-read-phone ()
@@ -223,16 +222,14 @@ the mail address is formatted obeying `bbdb-mail-name-format' and
 	      ;; The idea here is to keep adding to the list however
 	      ;; many addresses are found in the record.
 	      (let ((addresses mail))
-		(mapcar (lambda (mail)
-			  (push (bbdb-dwim-mail record mail) mails))
-			addresses))
+		(mapc (lambda (mail)
+                        (push (bbdb-dwim-mail record mail) mails))
+                      addresses))
 	    (let ((mail (bbdb-dwim-mail record (car mail))))
 	      (push mail mails))))))
-    (mapcar (lambda (mail)
-	      mail)
-    	    mails)))
+    (mapc #'identity mails)))
 
-(defun helm-bbdb-compose-mail (candidate)
+(defun helm-bbdb-compose-mail (_candidate)
   "Compose a new mail to one or multiple CANDIDATEs."
   (let* ((address-list (helm-bbdb-collect-mail-addresses))
          (address-str  (mapconcat 'identity address-list ",\n    ")))
@@ -256,7 +253,7 @@ Prompt user to confirm deletion."
                    (length cands)
                    (mapconcat 'identity cands "\n- ")))))))
 
-(defun helm-bbdb-insert-mail (candidate &optional comma)
+(defun helm-bbdb-insert-mail (_candidate &optional comma)
   "Insert CANDIDATE's email address.
 If optional argument COMMA is non-nil, insert comma separator as well,
 which is needed when executing persistent action."
@@ -280,11 +277,11 @@ To use this feature, make sure `helm-bbdb-expand-name' is added to the
   (if (and (looking-back "\\(<.+\\)\\(@\\)\\(.+>$\\)" nil)
 	   bbdb-complete-mail-allow-cycling)
       (bbdb-complete-mail)
-    (let ((mails)
+    (let (mails
 	  (abbrev (thing-at-point 'symbol t)))
-      (with-temp-buffer (mapcar (lambda (mail)
-				  (insert (concat mail "\n")))
-				(helm-bbdb-collect-all-mail-addresses))
+      (with-temp-buffer (mapc (lambda (mail)
+                                (insert (concat mail "\n")))
+                              (helm-bbdb-collect-all-mail-addresses))
 			(goto-char (point-min))
 			(while (re-search-forward (concat "\\(^.+\\)" "\\(" abbrev "\\)" "\\(.+$\\)") nil t)
 			  (push (concat (match-string 1) (match-string 2) (match-string 3)) mails)
