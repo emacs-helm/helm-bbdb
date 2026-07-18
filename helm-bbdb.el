@@ -38,11 +38,11 @@
 (defvar bbdb-default-xfield)
 
 (declare-function bbdb "ext:bbdb-com")
-(declare-function bbdb-current-record "ext:bbdb-com")
-(declare-function bbdb-redisplay-record "ext:bbdb-com")
+(declare-function bbdb-current-record "ext:bbdb")
+(declare-function bbdb-redisplay-record "ext:bbdb" (record &optional sort delete-p))
 (declare-function bbdb-record-mail "ext:bbdb-com" (record) t)
 (declare-function bbdb-mail-address "ext:bbdb-com")
-(declare-function bbdb-records "ext:bbdb-com")
+(declare-function bbdb-records "ext:bbdb" ())
 (declare-function bbdb-create-internal "ext:bbdb-com")
 (declare-function bbdb-read-organization "ext:bbdb-com")
 (declare-function bbdb-read-xfield "ext:bbdb-com")
@@ -52,7 +52,7 @@
 (declare-function bbdb-display-records "ext:bbdb")
 (declare-function bbdb-current-field "ext:bbdb")
 (declare-function bbdb-delete-field-or-record "ext:bbdb-com")
-(declare-function bbdb-record-organization "ext:bbdb")
+(declare-function bbdb-record-organization "ext:bbdb" (record) t)
 (declare-function bbdb-record-name "ext:bbdb")
 
 (defvar helm-bbdb--cache nil)
