@@ -16,12 +16,12 @@ Emacs.
 * Delete one or more contacts (marked).
 * Support auto-completion in `message-mode` buffers.
 
-# Dependencies
+## Dependencies
 
 [Helm](https://github.com/emacs-helm/helm) and
 [BBDB](https://melpa.org/#/bbdb)
 
-## Install
+## Installation
 
 ### From source
 

@@ -1,9 +1,9 @@
 ;;; helm-bbdb.el --- Helm interface for bbdb -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012 ~ 2026 Thierry Volpiatto <thierry.volpiatto@gmail.com>
+;; Copyright (C) 2012-2026 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
 ;; Version: 1.0
-;; Package-Requires: ((emacs "24.3") (helm "1.5") (bbdb "3.1.2"))
+;; Package-Requires: ((emacs "26.1") (helm "1.5") (bbdb "3.1.2"))
 ;; URL: https://github.com/emacs-helm/helm-bbdb
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -98,8 +98,8 @@ ARGS are the arguments passed to `bbdb-record-edit-address'."
   "Read a BBDB address string with Helm.
 
 PROMPT, COLLECTION, INIT, and REQUIRE-MATCH are passed to
-`helm-comp-read'.  EMPTY-CANDIDATE is added before COLLECTION.  When
-  Helm returns EMPTY-VALUE, return an empty string."
+`helm-comp-read'. EMPTY-CANDIDATE is added before COLLECTION. When Helm
+returns EMPTY-VALUE, return an empty string."
   (let ((value (helm-comp-read prompt
                                (cons empty-candidate collection)
                                :initial-input init
