@@ -1,6 +1,6 @@
 ;;; helm-bbdb.el --- Helm interface for bbdb -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012 ~ 2019 Thierry Volpiatto <thierry.volpiatto@gmail.com>
+;; Copyright (C) 2012 ~ 2026 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
 ;; Version: 1.0
 ;; Package-Requires: ((emacs "24.3") (helm "1.5") (bbdb "3.1.2"))
@@ -46,6 +46,9 @@
 (declare-function bbdb-create-internal "ext:bbdb-com")
 (declare-function bbdb-read-organization "ext:bbdb-com")
 (declare-function bbdb-read-xfield "ext:bbdb-com")
+(declare-function bbdb-read-string "ext:bbdb")
+(declare-function bbdb-record-edit-address "ext:bbdb-com")
+(declare-function bbdb-string-trim "ext:bbdb")
 (declare-function bbdb-display-records "ext:bbdb")
 (declare-function bbdb-current-field "ext:bbdb")
 (declare-function bbdb-delete-field-or-record "ext:bbdb-com")
@@ -53,6 +56,99 @@
 (declare-function bbdb-record-name "ext:bbdb")
 
 (defvar helm-bbdb--cache nil)
+
+(defconst helm-bbdb--end-street-lines-value
+  'helm-bbdb--end-street-lines)
+
+(defconst helm-bbdb--blank-address-field-value
+  'helm-bbdb--blank-address-field)
+
+(defconst helm-bbdb--end-street-lines-candidate
+  (cons "[End street lines]" helm-bbdb--end-street-lines-value))
+
+(defconst helm-bbdb--blank-address-field-candidate
+  (cons "[Leave blank]" helm-bbdb--blank-address-field-value))
+
+(defvar helm-bbdb--editing-address nil)
+
+;; Match the standard prompt suffixes used by BBDB 3.x.  IDENT may
+;; prepend arbitrary text, so these expressions are deliberately
+;; anchored only at the end.
+(defun helm-bbdb--street-prompt-p (prompt)
+  "Return non-nil when PROMPT reads a BBDB street line."
+  (and (stringp prompt)
+       (string-match-p "Street, line [0-9]+: \\'" prompt)))
+
+(defun helm-bbdb--address-field-prompt-p (prompt)
+  "Return non-nil when PROMPT reads a BBDB address subfield."
+  (and (stringp prompt)
+       (string-match-p "\\(?:City\\|State\\|Postcode\\|Country\\): \\'"
+                       prompt)))
+
+(defun helm-bbdb--record-edit-address (orig-fun &rest args)
+  "Call ORIG-FUN with BBDB address completion helpers enabled.
+
+ARGS are the arguments passed to `bbdb-record-edit-address'."
+  (let ((helm-bbdb--editing-address t))
+    (apply orig-fun args)))
+
+(defun helm-bbdb--read-address-string
+    (prompt collection empty-candidate empty-value
+            &optional init require-match)
+  "Read a BBDB address string with Helm.
+
+PROMPT, COLLECTION, INIT, and REQUIRE-MATCH are passed to
+`helm-comp-read'.  EMPTY-CANDIDATE is added before COLLECTION.  When
+  Helm returns EMPTY-VALUE, return an empty string."
+  (let ((value (helm-comp-read prompt
+                               (cons empty-candidate collection)
+                               :initial-input init
+                               :must-match require-match)))
+    (cond
+     ((eq value empty-value) "")
+     ((stringp value) (bbdb-string-trim value))
+     (t (error "Unexpected BBDB address value: %S" value)))))
+
+(defun helm-bbdb--bbdb-read-string
+    (orig-fun prompt &optional init collection require-match)
+  "Read BBDB address fields with explicit empty candidates.
+
+Call ORIG-FUN outside `bbdb-record-edit-address' and for non-address
+prompts.  INIT, COLLECTION, and REQUIRE-MATCH are the arguments passed to
+`bbdb-read-string'."
+  (cond
+   ((and helm-bbdb--editing-address
+         collection
+         (helm-bbdb--street-prompt-p prompt))
+    (helm-bbdb--read-address-string
+     prompt collection
+     helm-bbdb--end-street-lines-candidate
+     helm-bbdb--end-street-lines-value
+     init require-match))
+   ((and helm-bbdb--editing-address
+         collection
+         (helm-bbdb--address-field-prompt-p prompt))
+    (helm-bbdb--read-address-string
+     prompt collection
+     helm-bbdb--blank-address-field-candidate
+     helm-bbdb--blank-address-field-value
+     init require-match))
+   (t
+    (funcall orig-fun prompt init collection require-match))))
+
+(unless (advice-member-p #'helm-bbdb--record-edit-address
+                         'bbdb-record-edit-address)
+  (advice-add 'bbdb-record-edit-address
+              :around #'helm-bbdb--record-edit-address))
+(unless (advice-member-p #'helm-bbdb--bbdb-read-string 'bbdb-read-string)
+  (advice-add 'bbdb-read-string :around #'helm-bbdb--bbdb-read-string))
+
+(defun helm-bbdb-unload-function ()
+  "Remove advice installed by `helm-bbdb'."
+  (advice-remove 'bbdb-record-edit-address
+                 #'helm-bbdb--record-edit-address)
+  (advice-remove 'bbdb-read-string #'helm-bbdb--bbdb-read-string)
+  nil)
 
 (defgroup helm-bbdb nil
   "Commands and functions for bbdb."
@@ -241,7 +337,7 @@ Prompt user to confirm deletion."
   (let ((cands (helm-bbdb--marked-contacts)))
     (with-helm-display-marked-candidates
       "*bbdb candidates*" cands
-      (when (y-or-n-p "Delete contacts")
+      (when (y-or-n-p "Delete contacts?")
         (helm-bbdb-view-person-action 'ignore)
         (delete-window)
         (with-current-buffer bbdb-buffer-name

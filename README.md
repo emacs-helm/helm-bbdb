@@ -36,13 +36,14 @@ Just install from Melpa and once `(package-initialize)` loads and activates the 
 
 To use address auto-completion in message-mode buffers with TAB, add `helm-bbdb-expand-name` to the `message-completion-alist` variable.
 
-# Bugs and other issues
+# Address editing
 
-The `bbdb-edit-field` command may not work well with helm mode. This is because `bbdb-edit-address-street` needs an empty string to break the loop. However, there's no way of inputting an empty string in Helm if `bbdb-street-list` is not empty, so you may have to disable helm completion for `bbdb-edit-field`, and possibly `bbdb-insert-field` as well:
+`bbdb-edit-field` and `bbdb-insert-field` can edit BBDB addresses with Helm completion enabled.  When editing address fields, helm-bbdb adds explicit completion candidates for values that BBDB normally reads as an empty string:
 
-```elisp
-(add-to-list 'helm-completing-read-handlers-alist '(bbdb-edit-field . nil))
-```
+* `[End street lines]` ends the repeated street-line prompt.
+* `[Leave blank]` stores an empty value for city, state, postcode, or country.
+
+These candidates avoid the need to disable Helm completion for BBDB address editing commands when the corresponding BBDB completion lists are non-empty.
 
 # Related project
 
