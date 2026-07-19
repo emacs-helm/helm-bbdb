@@ -27,6 +27,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'subr-x)
 (require 'helm)
 (require 'helm-utils)
 (require 'helm-mode)
@@ -247,42 +248,49 @@ See docstring of `bbdb-create-internal' for address vector details."
            do (setq loc-list (remove loc loc-list))
            finally return address-list))
 
-(defun helm-bbdb-create-contact (actions candidate)
-  "Action transformer for `helm-source-bbdb'.
-Returns only an entry to add the current `helm-pattern' as new contact.
-All other actions are removed."
+(defun helm-bbdb-create-contact (candidate)
+  "Create a BBDB contact using CANDIDATE as the initial name."
   (require 'bbdb-com)
-  (if (and (stringp candidate)
-           (string= candidate "*Add new contact*"))
-      (helm-make-actions
-       "Add to contacts"
-       (lambda (_actions)
-         (bbdb-create-internal
-          :name (read-from-minibuffer "Name: " helm-pattern)
-          :organization (bbdb-read-organization)
-          :mail (helm-read-repeat-string "Email " t)
-          :phone (helm-bbdb-read-phone)
-          :address (helm-bbdb-read-address)
-          :xfields (let ((xfield (bbdb-read-xfield bbdb-default-xfield)))
-		             (unless (string= xfield "")
-		               (list (cons bbdb-default-xfield xfield)))))))
-    actions))
+  (bbdb-create-internal
+   :name (read-from-minibuffer "Name: " candidate)
+   :organization (bbdb-read-organization)
+   :mail (helm-read-repeat-string "Email " t)
+   :phone (helm-bbdb-read-phone)
+   :address (helm-bbdb-read-address)
+   :xfields (let ((xfield (bbdb-read-xfield bbdb-default-xfield)))
+              (unless (string= xfield "")
+                (list (cons bbdb-default-xfield xfield))))))
 
-(defvar helm-source-bbdb
-  (helm-build-sync-source "BBDB"
-    :init (lambda ()
-            (require 'bbdb))
-    :candidates 'helm-bbdb-candidates
-    :action 'helm-bbdb-actions
-    :persistent-action 'helm-bbdb-persistent-action
-    :persistent-help "View data"
-    :filtered-candidate-transformer (lambda (candidates _source)
-                                      (if candidates
-                                          candidates
-                                        (list "*Add new contact*")))
-    :action-transformer (lambda (actions candidate)
-                          (helm-bbdb-create-contact actions candidate)))
+(defvar helm-source-bbdb nil
   "Source for BBDB.")
+
+(setq helm-source-bbdb
+      (helm-build-sync-source "BBDB"
+        :init (lambda ()
+                (require 'bbdb))
+        :candidates 'helm-bbdb-candidates
+        :action 'helm-bbdb-actions
+        :persistent-action 'helm-bbdb-persistent-action
+        :persistent-help "View data"))
+
+(defvar helm-source-bbdb-create-contact nil
+  "Source to create BBDB contacts.")
+
+(setq helm-source-bbdb-create-contact
+      (helm-build-sync-source "Add BBDB contact"
+        :candidates (lambda ()
+                      (let ((name (string-trim helm-pattern)))
+                        (list
+                         (cons
+                          (if (string= name "")
+                              "Enter a contact name to add"
+                            (format "Add contact: %s" name))
+                          name))))
+        :match #'identity
+        :requires-pattern 0
+        :volatile t
+        :action (helm-make-actions
+                 "Add to contacts" #'helm-bbdb-create-contact)))
 
 (defun helm-bbdb-view-person-action (_candidate)
   "Display the selected or marked BBDB records."
@@ -402,7 +410,9 @@ Needs BBDB.
 
 URL `http://bbdb.sourceforge.net/'"
   (interactive)
-  (helm-other-buffer 'helm-source-bbdb "*helm bbdb*"))
+  (helm :sources '(helm-source-bbdb
+                   helm-source-bbdb-create-contact)
+        :buffer "*helm bbdb*"))
 
 (provide 'helm-bbdb)
 
