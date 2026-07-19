@@ -47,6 +47,7 @@
 (declare-function bbdb-record-edit-address "ext:bbdb-com")
 (declare-function bbdb-string-trim "ext:bbdb")
 (declare-function bbdb-record-organization "ext:bbdb" (record) t)
+(declare-function bbdb-split "ext:bbdb" (separator string))
 (declare-function bbdb-display-records "ext:bbdb"
                   (records &optional layout append select horiz-p))
 (declare-function bbdb-delete-records "ext:bbdb-com" (records &optional noprompt))
@@ -296,41 +297,36 @@ All other actions are removed."
   (let ((bbdb-silent t))
     (bbdb-display-records (list record))))
 
+(defun helm-bbdb--record-mails (record)
+  "Return normalized mail addresses for RECORD."
+  (cl-loop for mail in (bbdb-record-mail record)
+           append (bbdb-split 'mail mail)))
 
 (defun helm-bbdb-collect-mail-addresses ()
   "Return a list of the mail addresses of candidates.
 If record has more than one address, prompt for an address."
   (cl-loop for record in (helm-marked-candidates)
-	   for mail = (bbdb-record-mail record)
-	   when mail collect
-	   (if (cdr mail)
-	       (helm-comp-read "Choose mail: "
-			       (mapcar (lambda (mail)
-					 (bbdb-dwim-mail record mail))
-				       mail)
-			       :allow-nest t
-			       :initial-input helm-pattern)
-	     (bbdb-dwim-mail record (car mail)))))
+	       for mails = (helm-bbdb--record-mails record)
+	       when mails collect
+	       (if (cdr mails)
+	           (helm-comp-read "Choose mail: "
+			                   (mapcar (lambda (mail)
+					                     (bbdb-dwim-mail record mail))
+				                       mails)
+			                   :allow-nest t
+			                   :initial-input helm-pattern)
+	         (bbdb-dwim-mail record (car mails)))))
 
 (defun helm-bbdb-collect-all-mail-addresses ()
   "Return a list of strings to use as the mail address of record.
-This may include multiple addresses of the same record. The name in
-the mail address is formatted obeying `bbdb-mail-name-format' and
+This may include multiple addresses of the same record. The name in the
+mail address is formatted obeying `bbdb-mail-name-format' and
 `bbdb-mail-name'."
   (let (mails)
     (dolist (record (bbdb-records))
-      (let ((mail (bbdb-record-mail record)))
-	(when mail
-	  (if (> (length mail) 1)
-	      ;; The idea here is to keep adding to the list however
-	      ;; many addresses are found in the record.
-	      (let ((addresses mail))
-		(mapc (lambda (mail)
-                        (push (bbdb-dwim-mail record mail) mails))
-                      addresses))
-	    (let ((mail (bbdb-dwim-mail record (car mail))))
-	      (push mail mails))))))
-    (mapc #'identity mails)))
+      (dolist (mail (helm-bbdb--record-mails record))
+        (push (bbdb-dwim-mail record mail) mails)))
+    (nreverse mails)))
 
 (defun helm-bbdb-compose-mail (_candidate)
   "Compose a new mail to one or multiple CANDIDATEs."
