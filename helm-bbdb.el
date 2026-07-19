@@ -38,7 +38,6 @@
 (defvar bbdb-default-xfield)
 
 (declare-function bbdb-record-mail "ext:bbdb-com" (record) t)
-(declare-function bbdb-mail-address "ext:bbdb-com")
 (declare-function bbdb-records "ext:bbdb" ())
 (declare-function bbdb-create-internal "ext:bbdb-com")
 (declare-function bbdb-read-organization "ext:bbdb-com")
@@ -46,10 +45,10 @@
 (declare-function bbdb-read-string "ext:bbdb")
 (declare-function bbdb-record-edit-address "ext:bbdb-com")
 (declare-function bbdb-string-trim "ext:bbdb")
-(declare-function bbdb-record-organization "ext:bbdb" (record) t)
 (declare-function bbdb-split "ext:bbdb" (separator string))
 (declare-function bbdb-display-records "ext:bbdb"
                   (records &optional layout append select horiz-p))
+(declare-function bbdb-display-record "ext:bbdb" (record layout number))
 (declare-function bbdb-delete-records "ext:bbdb-com" (records &optional noprompt))
 (declare-function bbdb-record-name "ext:bbdb")
 
@@ -67,7 +66,7 @@
 
 (defvar helm-bbdb--editing-address nil)
 
-;; Match the standard prompt suffixes used by BBDB 3.x.  IDENT may
+;; Match the standard prompt suffixes used by BBDB 3.x. IDENT may
 ;; prepend arbitrary text, so these expressions are deliberately
 ;; anchored only at the end.
 (defun helm-bbdb--street-prompt-p (prompt)
@@ -83,7 +82,6 @@
 
 (defun helm-bbdb--record-edit-address (orig-fun &rest args)
   "Call ORIG-FUN with BBDB address completion helpers enabled.
-
 ARGS are the arguments passed to `bbdb-record-edit-address'."
   (let ((helm-bbdb--editing-address t))
     (apply orig-fun args)))
@@ -92,7 +90,6 @@ ARGS are the arguments passed to `bbdb-record-edit-address'."
     (prompt collection empty-candidate empty-value
             &optional init require-match)
   "Read a BBDB address string with Helm.
-
 PROMPT, COLLECTION, INIT, and REQUIRE-MATCH are passed to
 `helm-comp-read'. EMPTY-CANDIDATE is added before COLLECTION. When Helm
 returns EMPTY-VALUE, return an empty string."
@@ -108,7 +105,6 @@ returns EMPTY-VALUE, return an empty string."
 (defun helm-bbdb--bbdb-read-string
     (orig-fun prompt &optional init collection require-match)
   "Read BBDB address fields with explicit empty candidates.
-
 Call ORIG-FUN outside `bbdb-record-edit-address' and for non-address
 prompts.  INIT, COLLECTION, and REQUIRE-MATCH are the arguments passed to
 `bbdb-read-string'."
@@ -213,8 +209,8 @@ are searchable by Helm."
             helm-bbdb-display-style))))
 
 (defun helm-bbdb-read-phone ()
-  "Return a list of vector address objects.
-See docstring of `bbdb-create-internal' for more info on address entries."
+  "Return a list of BBDB phone vectors.
+See docstring of `bbdb-create-internal' for phone vector details."
   (cl-loop with loc-list = (cons "[Exit when no more]" bbdb-phone-label-list)
            with loc ; Defer count
            do (setq loc (helm-comp-read (format "Phone location[%s]: " count)
@@ -230,7 +226,7 @@ See docstring of `bbdb-create-internal' for more info on address entries."
 
 (defun helm-bbdb-read-address ()
   "Return a list of vector address objects.
-See docstring of `bbdb-create-internal' for more info on address entries."
+See docstring of `bbdb-create-internal' for address vector details."
   (cl-loop with loc-list = (cons "[Exit when no more]" bbdb-address-label-list)
            with loc ; Defer count
            do (setq loc (helm-comp-read
@@ -268,8 +264,8 @@ All other actions are removed."
           :phone (helm-bbdb-read-phone)
           :address (helm-bbdb-read-address)
           :xfields (let ((xfield (bbdb-read-xfield bbdb-default-xfield)))
-		     (unless (string= xfield "")
-		       (list (cons bbdb-default-xfield xfield)))))))
+		             (unless (string= xfield "")
+		               (list (cons bbdb-default-xfield xfield)))))))
     actions))
 
 (defvar helm-source-bbdb
@@ -355,9 +351,8 @@ Prompt user to confirm deletion."
   "Insert CANDIDATE's email address.
 If optional argument COMMA is non-nil, insert comma separator as well,
 which is needed when executing persistent action."
-  (let* ((address-list (cl-loop for candidate in (helm-marked-candidates)
-				collect candidate))
-	 (address-str  (mapconcat 'identity address-list ",\n    ")))
+  (let* ((address-list (helm-marked-candidates))
+         (address-str  (mapconcat 'identity address-list ",\n    ")))
     (end-of-line)
     (while (not (looking-back ": \\|, \\| [ \t]" (point-at-bol)))
       (delete-char -1))
@@ -367,37 +362,37 @@ which is needed when executing persistent action."
 (defun helm-bbdb-expand-name ()
   "Expand name under point when there is one.
 Otherwise, open a helm buffer displaying a list of addresses. If
-`bbdb-complete-mail-allow-cycling' is non-nil and point is at the end
-of the address line, cycle mail addresses of record.
-
-To use this feature, make sure `helm-bbdb-expand-name' is added to the
+`bbdb-complete-mail-allow-cycling' is non-nil and point is at the end of
+the address line, cycle mail addresses of record. To use this feature,
+make sure `helm-bbdb-expand-name' is added to the
 `message-completion-alist' variable."
   (if (and (looking-back "\\(<.+\\)\\(@\\)\\(.+>$\\)" nil)
-	   bbdb-complete-mail-allow-cycling)
+           bbdb-complete-mail-allow-cycling)
       (bbdb-complete-mail)
     (let (mails
-	  (abbrev (thing-at-point 'symbol t)))
-      (with-temp-buffer (mapc (lambda (mail)
-                                (insert (concat mail "\n")))
-                              (helm-bbdb-collect-all-mail-addresses))
-			(goto-char (point-min))
-			(while (re-search-forward (concat "\\(^.+\\)" "\\(" abbrev "\\)" "\\(.+$\\)") nil t)
-			  (push (concat (match-string 1) (match-string 2) (match-string 3)) mails)
-			  (setq mails mails)))
+          (abbrev (thing-at-point 'symbol t)))
+      (with-temp-buffer
+        (mapc (lambda (mail)
+                (insert (concat mail "\n")))
+              (helm-bbdb-collect-all-mail-addresses))
+        (goto-char (point-min))
+        (while (re-search-forward (concat "\\(^.+\\)" "\\(" abbrev "\\)" "\\(.+$\\)") nil t)
+          (push (concat (match-string 1) (match-string 2) (match-string 3)) mails)))
       ;; If there's one address, insert it automatically
       (if (= (length mails) 1)
-	  (progn (end-of-line)
-		 (while (not (looking-back ": \\|, \\| [ \t]" (point-at-bol)))
-		   (delete-char -1))
-		 (insert (car mails))
-		 (end-of-line))
-	;; If there's more than one, start helm
-	(helm :sources (helm-build-sync-source "BBDB"
-			 :candidates 'helm-bbdb-collect-all-mail-addresses
-			 :persistent-action (lambda (candidate)
-					      (helm-bbdb-insert-mail candidate t))
-			 :action 'helm-bbdb-insert-mail)
-	      :input (thing-at-point 'symbol t))))))
+          (progn (end-of-line)
+                 (while (not (looking-back ": \\|, \\| [ \t]" (point-at-bol)))
+                   (delete-char -1))
+                 (insert (car mails))
+                 (end-of-line))
+        ;; If there's more than one, start helm
+        (helm :sources
+              (helm-build-sync-source "BBDB"
+                :candidates 'helm-bbdb-collect-all-mail-addresses
+                :persistent-action (lambda (candidate)
+                                     (helm-bbdb-insert-mail candidate t))
+                :action 'helm-bbdb-insert-mail)
+              :input (thing-at-point 'symbol t))))))
 
 ;;;###autoload
 (defun helm-bbdb ()
