@@ -37,9 +37,6 @@
 (defvar bbdb-address-label-list)
 (defvar bbdb-default-xfield)
 
-(declare-function bbdb "ext:bbdb-com")
-(declare-function bbdb-current-record "ext:bbdb")
-(declare-function bbdb-redisplay-record "ext:bbdb" (record &optional sort delete-p))
 (declare-function bbdb-record-mail "ext:bbdb-com" (record) t)
 (declare-function bbdb-mail-address "ext:bbdb-com")
 (declare-function bbdb-records "ext:bbdb" ())
@@ -49,10 +46,10 @@
 (declare-function bbdb-read-string "ext:bbdb")
 (declare-function bbdb-record-edit-address "ext:bbdb-com")
 (declare-function bbdb-string-trim "ext:bbdb")
-(declare-function bbdb-display-records "ext:bbdb")
-(declare-function bbdb-current-field "ext:bbdb")
-(declare-function bbdb-delete-field-or-record "ext:bbdb-com")
 (declare-function bbdb-record-organization "ext:bbdb" (record) t)
+(declare-function bbdb-display-records "ext:bbdb"
+                  (records &optional layout append select horiz-p))
+(declare-function bbdb-delete-records "ext:bbdb-com" (records &optional noprompt))
 (declare-function bbdb-record-name "ext:bbdb")
 
 (defconst helm-bbdb--end-street-lines-value
@@ -154,11 +151,13 @@ prompts.  INIT, COLLECTION, and REQUIRE-MATCH are the arguments passed to
 
 (defcustom helm-bbdb-actions
   (helm-make-actions
-   "View contact's data" 'helm-bbdb-view-person-action
-   "Delete contact" 'helm-bbdb-delete-contact
-   "Send an email" 'helm-bbdb-compose-mail)
-  "Default actions alist for `helm-source-bbdb'."
-  :type '(alist :key-type string :value-type function))
+   "View contact" #'helm-bbdb-view-person-action
+   "Compose email" #'helm-bbdb-compose-mail
+   "Delete contact" #'helm-bbdb-delete-contact)
+  "Actions available for BBDB candidates."
+  :type '(alist :key-type string :value-type function)
+  :group 'helm-bbdb)
+
 (defcustom helm-bbdb-display-style 'one-line
   "How BBDB candidates are displayed and searched.
 With `name', candidates contain only the contact name. With `one-line',
@@ -272,13 +271,6 @@ All other actions are removed."
 		       (list (cons bbdb-default-xfield xfield)))))))
     actions))
 
-(defun helm-bbdb-get-record (candidate)
-  "Return record that match CANDIDATE."
-  (cl-letf (((symbol-function 'message) #'ignore))
-    (bbdb candidate nil)
-    (set-buffer bbdb-buffer-name)
-    (bbdb-current-record)))
-
 (defvar helm-source-bbdb
   (helm-build-sync-source "BBDB"
     :init (lambda ()
@@ -295,24 +287,15 @@ All other actions are removed."
                           (helm-bbdb-create-contact actions candidate)))
   "Source for BBDB.")
 
-(defun helm-bbdb--view-person-action-1 (candidates)
-  (bbdb-display-records
-   (mapcar 'helm-bbdb-get-record candidates) nil t))
-
-(defun helm-bbdb--marked-contacts ()
-  (cl-loop for record in (helm-marked-candidates)
-	   for name = (bbdb-record-name record)
-           collect
-	   name))
-
 (defun helm-bbdb-view-person-action (_candidate)
-  "View BBDB data of single CANDIDATE or marked candidates."
-  (helm-bbdb--view-person-action-1 (helm-bbdb--marked-contacts)))
+  "Display the selected or marked BBDB records."
+  (bbdb-display-records (helm-marked-candidates) nil nil t))
 
-(defun helm-bbdb-persistent-action (candidate)
-  "Persistent action to view CANDIDATE's data."
+(defun helm-bbdb-persistent-action (record)
+  "Display RECORD using Helm's persistent action."
   (let ((bbdb-silent t))
-    (helm-bbdb-view-person-action candidate)))
+    (bbdb-display-records (list record))))
+
 
 (defun helm-bbdb-collect-mail-addresses ()
   "Return a list of the mail addresses of candidates.
@@ -358,20 +341,19 @@ the mail address is formatted obeying `bbdb-mail-name-format' and
 (defun helm-bbdb-delete-contact (_candidate)
   "Delete CANDIDATE from the bbdb buffer and database.
 Prompt user to confirm deletion."
-  (let ((cands (helm-bbdb--marked-contacts)))
+  (let* ((records (helm-marked-candidates))
+         (count (length records))
+         (names (mapcar #'helm-bbdb--record-display-name records))
+         (noun (if (= count 1) "contact" "contacts")))
+    (unless records
+      (user-error "No BBDB contacts selected"))
     (with-helm-display-marked-candidates
-      "*bbdb candidates*" cands
-      (when (y-or-n-p "Delete contacts?")
-        (helm-bbdb-view-person-action 'ignore)
-        (delete-window)
-        (with-current-buffer bbdb-buffer-name
-          (helm-awhile (let ((field  (ignore-errors (bbdb-current-field)))
-                             (record (ignore-errors (bbdb-current-record))))
-                         (and field record (list record field t)))
-            (apply 'bbdb-delete-field-or-record it))
-          (message "%s contacts deleted: \n- %s"
-                   (length cands)
-                   (mapconcat 'identity cands "\n- ")))))))
+      "*BBDB contacts*" names
+      (when (y-or-n-p (format "Delete %s?" noun))
+        (bbdb-delete-records records t)
+        (message "%d %s deleted:\n- %s"
+                 count noun
+                 (mapconcat #'identity names "\n- "))))))
 
 (defun helm-bbdb-insert-mail (_candidate &optional comma)
   "Insert CANDIDATE's email address.
