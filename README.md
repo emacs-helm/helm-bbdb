@@ -40,6 +40,19 @@ activated, the `helm-bbdb` command should be available.
 To use address auto-completion in `message-mode` buffers with TAB, add
 `helm-bbdb-expand-name` to the `message-completion-alist` variable.
 
+### Candidate display
+
+By default, `helm-bbdb` displays candidates using BBDB's `one-line`
+layout. Fields included in that layout are searchable by Helm.
+
+To show only contact names, use:
+
+```elisp
+(setq helm-bbdb-display-style 'name)
+```
+
+In name-only mode, only contact names are displayed and searchable.
+
 ## Address editing
 
 `bbdb-edit-field` and `bbdb-insert-field` can edit BBDB addresses with

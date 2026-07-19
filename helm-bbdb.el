@@ -55,8 +55,6 @@
 (declare-function bbdb-record-organization "ext:bbdb" (record) t)
 (declare-function bbdb-record-name "ext:bbdb")
 
-(defvar helm-bbdb--cache nil)
-
 (defconst helm-bbdb--end-street-lines-value
   'helm-bbdb--end-street-lines)
 
@@ -161,12 +159,58 @@ prompts.  INIT, COLLECTION, and REQUIRE-MATCH are the arguments passed to
    "Send an email" 'helm-bbdb-compose-mail)
   "Default actions alist for `helm-source-bbdb'."
   :type '(alist :key-type string :value-type function))
+(defcustom helm-bbdb-display-style 'one-line
+  "How BBDB candidates are displayed and searched.
+With `name', candidates contain only the contact name. With `one-line',
+candidates use BBDB's `one-line' layout; fields present in that layout
+are searchable by Helm."
+  :type '(choice
+          (const :tag "Name only" name)
+          (const :tag "BBDB one-line layout" one-line))
+  :group 'helm-bbdb)
+
+(defun helm-bbdb--record-display-name (record)
+  "Return a display name for RECORD."
+  (let ((name (bbdb-record-name record)))
+    (if (or (not name) (string= name ""))
+        "???"
+      name)))
+
+(defun helm-bbdb--candidate (display record)
+  "Return a Helm candidate with DISPLAY and BBDB RECORD."
+  (cons display record))
+
+(defun helm-bbdb--one-line-display (record)
+  "Return RECORD formatted using BBDB's one-line layout."
+  (erase-buffer)
+  (bbdb-display-record record 'one-line 0)
+  (let ((display
+         (replace-regexp-in-string
+          "[ \t\n]*\\'" ""
+          (buffer-substring-no-properties
+           (point-min) (point-max)))))
+    (if (string= display "")
+        (helm-bbdb--record-display-name record)
+      display)))
 
 (defun helm-bbdb-candidates ()
-  "Return a list of all names in the bbdb database."
-  (cl-loop for bbdb-record in (bbdb-records)
-	   for name = (bbdb-record-name bbdb-record)
-	   collect (cons name bbdb-record)))
+  "Return BBDB records using `helm-bbdb-display-style'."
+  (pcase helm-bbdb-display-style
+    ('one-line
+     (with-temp-buffer
+       (cl-loop for record in (bbdb-records)
+                collect
+                (helm-bbdb--candidate
+                 (helm-bbdb--one-line-display record)
+                 record))))
+    ('name
+     (cl-loop for record in (bbdb-records)
+              collect (helm-bbdb--candidate
+                       (helm-bbdb--record-display-name record)
+                       record)))
+    (_
+     (error "Invalid `helm-bbdb-display-style': %S"
+            helm-bbdb-display-style))))
 
 (defun helm-bbdb-read-phone ()
   "Return a list of vector address objects.
@@ -235,38 +279,18 @@ All other actions are removed."
     (set-buffer bbdb-buffer-name)
     (bbdb-current-record)))
 
-(defun helm-bbdb-match-mail (candidate)
-  "Additional match function for matching the CANDIDATE's email address."
-  (string-match helm-pattern
-                (mapconcat
-                 'identity
-                 (bbdb-record-mail
-                  (assoc-default candidate helm-bbdb--cache))
-                 ",")))
-
-(defun helm-bbdb-match-org (candidate)
-  "Additional match function for matching the CANDIDATE's organization."
-  (string-match helm-pattern
-                (mapconcat
-                 'identity
-                 (bbdb-record-organization
-                  (assoc-default candidate helm-bbdb--cache))
-                 ",")))
-
 (defvar helm-source-bbdb
   (helm-build-sync-source "BBDB"
     :init (lambda ()
-            (require 'bbdb)
-            (setq helm-bbdb--cache (helm-bbdb-candidates)))
-    :candidates 'helm-bbdb--cache
-    :match '(helm-bbdb-match-mail helm-bbdb-match-org)
+            (require 'bbdb))
+    :candidates 'helm-bbdb-candidates
     :action 'helm-bbdb-actions
     :persistent-action 'helm-bbdb-persistent-action
     :persistent-help "View data"
     :filtered-candidate-transformer (lambda (candidates _source)
-                                      (if (not candidates)
-                                          (list "*Add new contact*")
-                                        candidates))
+                                      (if candidates
+                                          candidates
+                                        (list "*Add new contact*")))
     :action-transformer (lambda (actions candidate)
                           (helm-bbdb-create-contact actions candidate)))
   "Source for BBDB.")
