@@ -2,7 +2,9 @@
 
 ;; Copyright (C) 2012-2026 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
-;; Version: 1.0
+;; Author: Thierry Volpiatto <thierry.volpiatto@gmail.com>
+;; Maintainer: Jonathan Gregory <jgrg@autistici.org>
+;; Version: 1.2
 ;; Package-Requires: ((emacs "26.1") (helm "1.5") (bbdb "3.1.2"))
 ;; URL: https://github.com/emacs-helm/helm-bbdb
 
@@ -21,8 +23,13 @@
 
 ;;; Commentary:
 
-;; This is a Helm interface for BBDB, the Insidious Big Brother
-;; Database for GNU Emacs.
+;; A Helm interface to BBDB, the Insidious Big Brother Database for
+;; GNU Emacs. The command `helm-bbdb' lists BBDB contacts, searches
+;; fields shown in the selected candidate layout, and provides actions
+;; to compose mail, display, create, and delete records.
+;;
+;; To enable Helm mail address completion in `message-mode', add
+;; `helm-bbdb-expand-name' to `message-completion-alist'.
 
 ;;; Code:
 
