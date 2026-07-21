@@ -334,9 +334,11 @@ mail address is formatted obeying `bbdb-mail-name-format' and
 
 (defun helm-bbdb-compose-mail (_candidate)
   "Compose a new mail to one or multiple CANDIDATEs."
-  (let* ((address-list (helm-bbdb-collect-mail-addresses))
-         (address-str  (mapconcat 'identity address-list ",\n    ")))
-    (compose-mail address-str nil nil nil 'switch-to-buffer)))
+  (let ((address-list (helm-bbdb-collect-mail-addresses)))
+    (unless address-list
+      (user-error "No email address found"))
+    (let ((address-str  (mapconcat #'identity address-list ",\n    ")))
+      (compose-mail address-str nil nil nil 'switch-to-buffer))))
 
 (defun helm-bbdb-delete-contact (_candidate)
   "Delete CANDIDATE from the bbdb buffer and database.
