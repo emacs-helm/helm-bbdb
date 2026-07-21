@@ -371,7 +371,7 @@ which is needed when executing persistent action."
   (let* ((address-list (helm-marked-candidates))
          (address-str  (mapconcat 'identity address-list ",\n    ")))
     (end-of-line)
-    (while (not (looking-back ": \\|, \\| [ \t]" (point-at-bol)))
+    (while (not (looking-back ": \\|, \\| [ \t]" (line-beginning-position)))
       (delete-char -1))
     (insert (concat address-str (when comma ", ")))
     (end-of-line)))
@@ -398,7 +398,7 @@ make sure `helm-bbdb-expand-name' is added to the
       ;; If there's one address, insert it automatically
       (if (= (length mails) 1)
           (progn (end-of-line)
-                 (while (not (looking-back ": \\|, \\| [ \t]" (point-at-bol)))
+                 (while (not (looking-back ": \\|, \\| [ \t]" (line-beginning-position)))
                    (delete-char -1))
                  (insert (car mails))
                  (end-of-line))
