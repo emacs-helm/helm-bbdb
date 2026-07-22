@@ -249,9 +249,9 @@ See docstring of `bbdb-create-internal' for address vector details."
            for lines = (helm-read-repeat-string "Street, line" t)
            for city = (helm-read-string "City: ")
            for state = (helm-read-string "State: ")
-           for zip = (helm-read-string "ZipCode: ")
+           for postcode = (helm-read-string "Postcode: ")
            for country = (helm-read-string "Country: ")
-           collect (vector loc lines city state zip country) into address-list
+           collect (vector loc lines city state postcode country) into address-list
            do (setq loc-list (remove loc loc-list))
            finally return address-list))
 
@@ -339,6 +339,18 @@ mail address is formatted obeying `bbdb-mail-name-format' and
         (push (bbdb-dwim-mail record mail) mails)))
     (nreverse mails)))
 
+(defun helm-bbdb--matching-mail-addresses (abbrev addresses)
+  "Return ADDRESSES containing ABBREV as literal text.
+Matching is case-insensitive.  Return nil when ABBREV is empty to
+prevent automatic selection of an arbitrary address."
+  (unless (string-empty-p abbrev)
+    (let ((case-fold-search t)
+          (regexp (regexp-quote abbrev)))
+      (cl-remove-if-not
+       (lambda (address)
+         (string-match-p regexp address))
+       addresses))))
+
 (defun helm-bbdb-compose-mail (_candidate)
   "Compose a new mail to one or multiple CANDIDATEs."
   (let ((address-list (helm-bbdb-collect-mail-addresses)))
@@ -386,15 +398,9 @@ make sure `helm-bbdb-expand-name' is added to the
   (if (and (looking-back "\\(<.+\\)\\(@\\)\\(.+>$\\)" nil)
            bbdb-complete-mail-allow-cycling)
       (bbdb-complete-mail)
-    (let (mails
-          (abbrev (thing-at-point 'symbol t)))
-      (with-temp-buffer
-        (mapc (lambda (mail)
-                (insert (concat mail "\n")))
-              (helm-bbdb-collect-all-mail-addresses))
-        (goto-char (point-min))
-        (while (re-search-forward (concat "\\(^.+\\)" "\\(" abbrev "\\)" "\\(.+$\\)") nil t)
-          (push (concat (match-string 1) (match-string 2) (match-string 3)) mails)))
+    (let* ((abbrev (or (thing-at-point 'symbol t) ""))
+           (addresses (helm-bbdb-collect-all-mail-addresses))
+           (mails (helm-bbdb--matching-mail-addresses abbrev addresses)))
       ;; If there's one address, insert it automatically
       (if (= (length mails) 1)
           (progn (end-of-line)
@@ -405,11 +411,11 @@ make sure `helm-bbdb-expand-name' is added to the
         ;; If there's more than one, start helm
         (helm :sources
               (helm-build-sync-source "BBDB"
-                :candidates 'helm-bbdb-collect-all-mail-addresses
+                :candidates addresses
                 :persistent-action (lambda (candidate)
                                      (helm-bbdb-insert-mail candidate t))
                 :action 'helm-bbdb-insert-mail)
-              :input (thing-at-point 'symbol t))))))
+              :input abbrev)))))
 
 ;;;###autoload
 (defun helm-bbdb ()
