@@ -3,7 +3,7 @@
 ;; Copyright (C) 2012-2026 Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
 ;; Author: Thierry Volpiatto <thierry.volpiatto@gmail.com>
-;; Maintainer: Jonathan Gregory <jgrg@autistici.org>
+;; Maintainer: Jonathan Gregory <jagrg@posteo.com>
 ;; Version: 1.2
 ;; Package-Requires: ((emacs "26.1") (helm "1.5") (bbdb "3.1.2"))
 ;; URL: https://github.com/emacs-helm/helm-bbdb
